@@ -13,8 +13,4 @@ UCLASS()
 class SBS_API USBSApiFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
-
-public:
-	UFUNCTION( BlueprintPure, meta = ( WorldContext = "WorldContextObject" ) )
-	static bool IsApiSubsystemReady(UObject* WorldContextObject);
 };

@@ -7,7 +7,7 @@
 #include "Structures/ApiPostStruct.h"
 #include "SBSApiSubsystem.generated.h"
 
-DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnBlueprintQueryDone, const TArray<FBlueprintJsonStructure>&, Blueprints, bool, Success);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnBlueprintQueryDone, const TArray<FBlueprintJsonStructure>&, Blueprints, int32, Max, bool, Success);
 
 /**
  * 
@@ -22,7 +22,7 @@ protected:
 	
 public:
 	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-	void QueryApi( FFilterPostStruct Request, FOnBlueprintQueryDone& OnQueryDone );
+	void QueryApi( FFilterPostStruct Post );
 	
 	UFUNCTION( BlueprintPure, Category = "KMods|Json" )
 	FORCEINLINE TArray<FBlueprintJsonStructure> GetBlueprints() const { return mCurrentBlueprints; }
@@ -33,6 +33,9 @@ public:
 	// NATIVE GETTER
 	static USBSApiSubsystem* Get( const UObject* WorldContext );
 
+	UPROPERTY(BlueprintAssignable);
+	FOnBlueprintQueryDone mOnQueryDone;
+	
 private:
 	UPROPERTY();
 	TArray<FBlueprintJsonStructure> mCurrentBlueprints;

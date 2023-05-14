@@ -13,18 +13,17 @@ void USBSApiSubsystem::Initialize( FSubsystemCollectionBase& Collection )
 	FFilterPostStruct Request;
 	Request.Limit = 20;
 	Request.Skip = 0;
-	FOnBlueprintQueryDone OnQueryDone;
-	QueryApi( Request, OnQueryDone );
+	QueryApi( Request );
 }
 
-void USBSApiSubsystem::QueryApi( FFilterPostStruct Request, FOnBlueprintQueryDone& OnQueryDone )
+void USBSApiSubsystem::QueryApi( FFilterPostStruct Post )
 {
 	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
-	Request->OnProcessRequestComplete().BindLambda( [this, OnQueryDone]( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess )
+	Request->OnProcessRequestComplete().BindLambda( [this]( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess )
 	{
 		bool success = false;
 		if ( bSuccess )
-        {
+		{
 			TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 			if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString() ), JsonObject ) )
 			{
@@ -41,32 +40,30 @@ void USBSApiSubsystem::QueryApi( FFilterPostStruct Request, FOnBlueprintQueryDon
 					}
 				}
 			}
-        }
-        else
-        {
-            UE_LOG( LogSBS, Error, TEXT( "QueryApi failed" ) );
-        }
-		OnQueryDone.ExecuteIfBound( mCurrentBlueprints, success );
+		}
+		else
+		{
+			UE_LOG( LogSBS, Error, TEXT( "QueryApi failed" ) );
+		}
+		if( mOnQueryDone.IsBound() )
+		{
+			mOnQueryDone.Broadcast(mCurrentBlueprints, mTotalBlueprints, success);
+		}
 	} );
 
-	Request->SetURL( Request.getUrl() );
+	Request->SetURL( Post.getUrl() );#
+	TMap<FString, FString> Headers;
+	Post.MakeHeader( Headers );
 	for( auto Header : Headers )
 	{
-		if( Header.Key != "Accepts" && Header.Key != "Content-Type" && Header.Key != "User-Agent" )
+		if( !Header.Key.IsEmpty() && !Header.Value.IsEmpty() )
 		{
-			if( !Header.Key.IsEmpty() && !Header.Value.IsEmpty() )
-			{
-				Request->SetHeader( Header.Key, Header.Value );
-			}
+			Request->SetHeader( Header.Key, Header.Value );
 		}
 	}
 
-	Request->SetHeader( TEXT( "User-Agent" ), TEXT( "X-UnrealEngine-Agent" ) );
-	Request->SetHeader( TEXT( "Content-Type" ), TEXT( "application/json" ) );
-	Request->SetHeader( TEXT( "Accepts" ), TEXT( "application/json" ) );
-
 	Request->SetVerb( "POST" );
-	Request->SetContentAsString( Request.ToString() );
+	Request->SetContentAsString( Post.ToString() );
 	Request->ProcessRequest();
 }
 
