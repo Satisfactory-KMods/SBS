@@ -51,7 +51,7 @@ void USBSApiSubsystem::QueryApi( FFilterPostStruct Post )
 		}
 	} );
 
-	Request->SetURL( Post.getUrl() );#
+	Request->SetURL( Post.getUrl() );
 	TMap<FString, FString> Headers;
 	Post.MakeHeader( Headers );
 	for( auto Header : Headers )

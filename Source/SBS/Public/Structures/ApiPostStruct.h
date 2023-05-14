@@ -9,6 +9,7 @@ USTRUCT(BlueprintType)
 struct SBS_API FApiPostStruct
 {
 	GENERATED_BODY();
+    virtual ~FApiPostStruct() {}
  
 public:
 	// create Header

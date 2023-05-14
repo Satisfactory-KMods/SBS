@@ -7,6 +7,7 @@ USTRUCT(BlueprintType)
 struct SBS_API FApiJsonStruct
 {
 	GENERATED_BODY();
+    virtual ~FApiJsonStruct() {}
 
 public:
 	TSharedPtr<FJsonObject> mJsonObject;
