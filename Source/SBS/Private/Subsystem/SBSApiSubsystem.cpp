@@ -6,53 +6,24 @@
 #include "Interfaces/IHttpResponse.h"
 #include "SBS/Public/Logging.h"
 #include "Structures/ApiJsonStruct.h"
+#include "Subsystems/KBFLAssetDataSubsystem.h"
 
 void USBSApiSubsystem::Initialize( FSubsystemCollectionBase& Collection )
 {
+	Collection.InitializeDependency( UKBFLAssetDataSubsystem::StaticClass() );
 	Super::Initialize( Collection );
-	FFilterPostStruct Request;
-	Request.Limit = 20;
-	Request.Skip = 0;
-	QueryApi( Request );
 }
 
 void USBSApiSubsystem::QueryApi( FFilterPostStruct Post )
 {
-	FHttpRequestRef Request = FHttpModule::Get().CreateRequest();
-	Request->OnProcessRequestComplete().BindLambda( [this]( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess )
+	if( bIsInQuery )
 	{
-		bool success = false;
-		if ( bSuccess )
-		{
-			TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
-			if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString() ), JsonObject ) )
-			{
-				const TArray< TSharedPtr<FJsonValue> >* DataArray;
-				if( JsonObject->TryGetArrayField( "blueprints", DataArray ) )
-				{
-					success = JsonObject->TryGetNumberField( "totalBlueprints", mTotalBlueprints );
-					for (TSharedPtr<FJsonValue, ESPMode::NotThreadSafe> JsonValue : *DataArray )
-					{
-						FBlueprintJsonStructure Struct;
-						Struct.setJsonObject( JsonValue->AsObject() );
-						Struct.parse();
-						mCurrentBlueprints.Add( Struct );
-					}
-				}
-			}
-		}
-		else
-		{
-			UE_LOG( LogSBS, Error, TEXT( "QueryApi failed" ) );
-		}
-		if( mOnQueryDone.IsBound() )
-		{
-			mOnQueryDone.Broadcast(mCurrentBlueprints, mTotalBlueprints, success);
-		}
-	} );
+		return;
+	}
 
+	const FHttpRequestPtr Request = FHttpModule::Get().CreateRequest();
 	Request->SetURL( Post.getUrl() );
-	TMap<FString, FString> Headers;
+	TMap< FString, FString > Headers;
 	Post.MakeHeader( Headers );
 	for( auto Header : Headers )
 	{
@@ -64,7 +35,12 @@ void USBSApiSubsystem::QueryApi( FFilterPostStruct Post )
 
 	Request->SetVerb( "POST" );
 	Request->SetContentAsString( Post.ToString() );
-	Request->ProcessRequest();
+	Request->OnProcessRequestComplete().BindUObject( this, &USBSApiSubsystem::OnBlueprintQueryDone );
+	Request->SetTimeout( 10 );
+	if( Request->ProcessRequest() )
+	{
+		bIsInQuery = true;
+	}
 }
 
 inline USBSApiSubsystem* USBSApiSubsystem::Get( const UObject* WorldContext )
@@ -74,4 +50,35 @@ inline USBSApiSubsystem* USBSApiSubsystem::Get( const UObject* WorldContext )
 		return WorldContext->GetWorld()->GetGameInstance()->GetSubsystem< USBSApiSubsystem >();
 	}
 	return nullptr;
+}
+
+void USBSApiSubsystem::OnBlueprintQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess )
+{
+	bIsInQuery = false;
+	bool success = false;
+	if( bSuccess )
+	{
+		TSharedPtr< FJsonObject > JsonObject = MakeShareable( new FJsonObject );
+		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString() ), JsonObject ) )
+		{
+			const TArray< TSharedPtr< FJsonValue > >* DataArray;
+			if( JsonObject->TryGetArrayField( "blueprints", DataArray ) )
+			{
+				success = JsonObject->TryGetNumberField( "totalBlueprints", mTotalBlueprints );
+				mCurrentBlueprints.Empty();
+				for( TSharedPtr< FJsonValue, ESPMode::NotThreadSafe > JsonValue : *DataArray )
+				{
+					FBlueprintJsonStructure Struct;
+					Struct.setJsonObject( JsonValue->AsObject() );
+					Struct.parse();
+					mCurrentBlueprints.Add( Struct );
+				}
+			}
+		}
+	}
+
+	if( mOnQueryDone.IsBound() )
+	{
+		mOnQueryDone.Broadcast( mCurrentBlueprints, mTotalBlueprints, success );
+	}
 }

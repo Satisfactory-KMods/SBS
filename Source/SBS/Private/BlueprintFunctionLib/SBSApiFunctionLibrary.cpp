@@ -2,5 +2,3 @@
 
 
 #include "BlueprintFunctionLib/SBSApiFunctionLibrary.h"
-
-#include "Subsystems/KBFLAssetDataSubsystem.h"

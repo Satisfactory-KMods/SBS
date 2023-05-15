@@ -66,3 +66,27 @@ public:
 protected:
 	virtual void ToJson( TSharedPtr<FJsonObject>& JsonObject ) override;
 };
+
+USTRUCT()
+struct SBS_API FDownloadSbpStruct : public FApiPostStruct
+{
+	GENERATED_BODY();
+
+	FString ID = "";
+	
+	virtual FString getUrl() override
+	{
+		return FSBSStatics::MakeUrl(FSBSStatics::API_BLUEPRINTDOWNLOAD + ID + "/sbp");
+	};
+};
+
+USTRUCT()
+struct SBS_API FDownloadSbpcfgStruct : public FDownloadSbpStruct
+{
+	GENERATED_BODY();
+
+	virtual FString getUrl() override
+	{
+		return FSBSStatics::MakeUrl(FSBSStatics::API_BLUEPRINTDOWNLOAD + ID + "/sbpcfg");
+	};
+};
