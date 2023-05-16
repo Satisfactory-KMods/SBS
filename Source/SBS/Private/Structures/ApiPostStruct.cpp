@@ -11,6 +11,9 @@ void FApiPostStruct::MakeHeader( TMap< FString, FString >& Headers )
 	Headers.Add( TEXT( "Content-Type" ), TEXT( "application/json" ) );
 	Headers.Add( TEXT( "Accepts" ), TEXT( "application/json" ) );
 	Headers.Add( TEXT( "x-api-key" ), FSBSStatics::API_KEY );
+
+	// unique account key for every player to post requests to SBS for like upload BP or ratings
+	Headers.Add( TEXT( "x-account-key" ), FSBSStatics::GetAccountKey() );
 }
 
 FString FApiPostStruct::ToString()
@@ -71,4 +74,12 @@ void FFilterPostStruct::ToJson( TSharedPtr< FJsonObject >& JsonObject )
 	JsonObject->SetNumberField( "skip", Skip );
 	JsonObject->SetNumberField( "limit", Limit );
 	JsonObject->SetObjectField( "filterOptions", filterSchema );
+}
+
+void FRatingPostStruct::ToJson( TSharedPtr<FJsonObject>& JsonObject )
+{
+	FApiPostStruct::ToJson( JsonObject );
+
+	JsonObject->SetStringField( "blueprintId", BlueprintID );
+	JsonObject->SetNumberField( "rating", Rating );
 }

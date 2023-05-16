@@ -27,6 +27,38 @@ public:
 };
 
 USTRUCT( BlueprintType )
+struct SBS_API FBlueprintJsonTagStructure : public FApiJsonStruct
+{
+	GENERATED_BODY()
+	;
+
+public:
+	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
+	FString ID;
+
+	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
+	FString DisplayName;
+
+	virtual void parse() override;
+};
+
+USTRUCT( BlueprintType )
+struct SBS_API FBlueprintJsonColorStructure : public FApiJsonStruct
+{
+	GENERATED_BODY()
+	;
+
+public:
+	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
+	int32 IconID;
+
+	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
+	FLinearColor Color;
+
+	virtual void parse() override;
+};
+
+USTRUCT( BlueprintType )
 struct SBS_API FBlueprintJsonStructure : public FApiJsonStruct
 {
 	GENERATED_BODY()
@@ -50,7 +82,7 @@ public:
 	TArray< FString > Mods;
 
 	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
-	TArray< FString > Tags;
+	TArray< FBlueprintJsonTagStructure > Tags;
 
 	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
 	FString Owner;
@@ -84,6 +116,9 @@ public:
 
 	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
 	FString OriginalName;
+
+	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
+	FBlueprintJsonColorStructure IconData;
 
 	virtual void parse() override;
 };

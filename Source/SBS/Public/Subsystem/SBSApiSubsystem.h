@@ -11,6 +11,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams( FOnBlueprintQueryDone, const TArray<FBlueprintJsonStructure>&, Blueprints, int32, Max, bool, Success );
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnDynamicQueryDone, FDynamicApiPostStruct, PostResult, bool, Success );
+
 /**
  * 
  */
@@ -25,6 +27,18 @@ protected:
 public:
 	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
 	void QueryApi( FFilterPostStruct Post );
+
+	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+	void QueryApiDynamic( FDynamicApiPostStruct Post );
+
+	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+	void QueryRating( FRatingPostStruct Post );
+
+	UFUNCTION( BlueprintPure, Category = "KMods|Json" )
+	bool IsQuery() const;
+
+	UFUNCTION( BlueprintPure, Category = "KMods|Json" )
+	bool HasAuth() const;
 
 	UFUNCTION( BlueprintPure, Category = "KMods|Json" )
 	FORCEINLINE TArray< FBlueprintJsonStructure > GetBlueprints() const { return mCurrentBlueprints; }
@@ -41,16 +55,28 @@ public:
 	UPROPERTY( BlueprintAssignable )
 	FOnBlueprintQueryDone mOnQueryDone;
 
+	UPROPERTY( BlueprintAssignable )
+	FOnDynamicQueryDone mOnDynamicQueryDone;
+
 protected:
 	void OnBlueprintQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+	void OnQueryDynamicDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+	void OnAccountKeyChanged();
+	void OnCheckKey( FDynamicApiPostStruct PostResult, bool Success );
 
 private:
 	UPROPERTY()
 	TArray< FBlueprintJsonStructure > mCurrentBlueprints;
 
 	UPROPERTY()
+	FDynamicApiPostStruct mDynamicQuery;
+
+	UPROPERTY()
 	int32 mTotalBlueprints;
 
 	UPROPERTY()
 	bool bIsInQuery = false;
+
+	UPROPERTY()
+	bool bHasAuth = false;
 };
