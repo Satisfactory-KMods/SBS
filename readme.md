@@ -5,36 +5,36 @@
         </td>
         <td v-align="left">
             <a href="https://ficsit.app/user/9uvZtCA4cM6H4q"><img style="height: 100px!Important" src="https://raw.githubusercontent.com/Kyri123/KMods-Docs/main/docs/Images/Kyri-Logo.png"></a><br /><br />
-            <img height="30px" style="float:left, margin-right:12px" src="https://raw.githubusercontent.com/deantendo/community/master/com_mp_yes.png">
+            <img height="30px" style="float:left, margin-right:12px" src="https://raw.githubusercontent.com/deantendo/community/master/com_mp_host.png">
             <a href="https://discord.gg/JsJ9XXWS7Q"><img height="30px" style="float:left, margin-right:12px" src="https://raw.githubusercontent.com/Kyri123/KMods-Docs/main/docs/Images/ReportBugs.png"></a>
            <a href="https://discord.gg/JsJ9XXWS7Q"> <img height="30px" style="float:left, margin-right:12px" src="https://raw.githubusercontent.com/Kyri123/KMods-Docs/main/docs/Images/Suggestions.png"></a>
         </td>
     <tr>
 </table>
-<br /><hr /> 
+<br /><hr />
 
 ## ⚠️ Important Information:
-* You need an active internet connection to download and get blueprints from https://sbs.kyrium.space/ (alias https://sbs.kmods.de/)
-* You find SBS in the build menu if you also unlocked Blueprints.
-* If SBS don't show the first time, then reopen the build menu.
+* You need an active internet connection to download blueprints from https://sbs.kyrium.space/ (alias https://sbs.kmods.de/)
+* You can find SBS in the build menu once you have unlocked Blueprints.
+* If SBS doesn't show the first time, then re-open the build menu.
 
 ## ✔️ Features:
-* Download direct from https://sbs.kyrium.space/ (alias https://sbs.kmods.de/) blueprints without reload your save game (hot load)
-* Share blueprints with all other peoples
-* Filter by name or by Modded or only Vanilla.
-* Warnings if a mod is missing for this blueprint
+* Download blueprints directly from https://sbs.kyrium.space/ (alias https://sbs.kmods.de/) without reloading your save (hot loading).
+* Share blueprints with other players.
+* Filter Blueprints by name or by vanilla / modded.
+* You receive a warning if a mod is missing when building modded blueprints.
 * and much more!
 
-### 🌐 How do I upload new blueprints to share with other users
-* Go to https://sbs.kyrium.space/ (alias https://sbs.kmods.de/) and create a new account or login to your account
-* Hover over blueprints and click on "Create a blueprint"
-* fill the formula and select the .sbp and .sbpcfg files and select up to 5 images (they should be 16x9)
-* click on upload button and that's it! Now it will be shown in game on the website for everyone!
+### 🌐 How do I upload new blueprints and share them with other users?
+* Go to https://sbs.kyrium.space/ (alias https://sbs.kmods.de/) and create a new account or log into your existing account.
+* Hover over blueprints and click on "Create a blueprint".
+* Fill in the form and select the .sbp and .sbpcfg files + up to 5 images (they should be 16 x 9).
+* Click on "upload" and that's it! Now it will be shown to everyone in-game and on the website!
 
 ### 🔜 Planned Features
-* more filter options (the same as on the website)
-* blueprint-packs to download a pack with many blueprints at the same time
-* and more?
+* More filter options in-game (the same as on the website).
+* Blueprint packs, which allow you to download multiple blueprints at once.
+* and maybe more....
 
 ___
 ## Credits:
