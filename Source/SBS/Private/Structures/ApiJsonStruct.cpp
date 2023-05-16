@@ -34,8 +34,8 @@ void FBlueprintJsonStructure::parse()
 			}
 		}
 
-		const TSharedPtr<FJsonObject>* Object;
-		if( mJsonObject->TryGetObjectField( "tags", Object ) )
+		const TSharedPtr< FJsonObject >* Object;
+		if( mJsonObject->TryGetObjectField( "iconData", Object ) )
 		{
 			IconData.mJsonObject = *Object;
 			IconData.parse();
@@ -55,26 +55,25 @@ void FBlueprintJsonTagStructure::parse()
 }
 
 void FBlueprintJsonColorStructure::parse()
-{ 
+{
 	FApiJsonStruct::parse();
 
 	if( mJsonObject )
 	{
-		const TSharedPtr<FJsonObject>* Object;
-		if( mJsonObject->TryGetObjectField( "tags", Object ) )
+		const TSharedPtr< FJsonObject >* Object;
+		if( mJsonObject->TryGetObjectField( "color", Object ) )
 		{
-			TSharedPtr<FJsonObject> Json = *Object;
+			TSharedPtr< FJsonObject > Json = *Object;
 
 			double a, r, g, b;
-			
+
 			Json->TryGetNumberField( "a", a );
 			Json->TryGetNumberField( "r", r );
 			Json->TryGetNumberField( "g", g );
-			Json->TryGetNumberField( "b", b);
+			Json->TryGetNumberField( "b", b );
 
 			Color = FLinearColor( r, g, b, a );
 		}
-		mJsonObject->TryGetObjectField( "color", Object );
 		mJsonObject->TryGetNumberField( "iconID", IconID );
 	}
 }
