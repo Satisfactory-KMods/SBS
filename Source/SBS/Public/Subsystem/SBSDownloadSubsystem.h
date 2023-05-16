@@ -32,12 +32,24 @@ public:
 	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
 	bool DownloadBlueprint( FBlueprintJsonStructure Blueprint );
 
-	// 0 = not pending; 1 = pending; 2 = failed
+	// 0 = not pending; 1 = pending; 2 = running
 	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
 	int32 GetDownloadStateForBlueprint( FBlueprintJsonStructure Blueprint );
 
 	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
 	FString GetCurrentBlueprintPath();
+
+	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+	bool IsBlueprintInstalled( FBlueprintJsonStructure Blueprint );
+
+	UFUNCTION( BlueprintNativeEvent, Category = "KMods|Json" )
+	bool OnBlueprintCreated( UFGBlueprintDescriptor* BlueprintDescriptor, FBlueprintJsonStructure Blueprint );
+
+	UFUNCTION( BlueprintPure, Category = "KMods|Json" )
+	static UFGLocalPlayer* SBS_GetLocalPlayer( UObject* WorldContext ) { return Cast< UFGLocalPlayer >( UKBFL_Player::GetFgPlayerState( WorldContext )->GetOwningController()->GetLocalPlayer() ); };
+
+	UPROPERTY( BlueprintReadOnly )
+	FString mSaveSessionName = FString();
 
 private:
 	USBSApiSubsystem* mApiSubsystem;
@@ -61,11 +73,13 @@ private:
 	FBlueprintJsonStructure mCurrentDownload;
 
 	TArray< FBlueprintJsonStructure > mDownloadQueueChecker;
-	TQueue< FBlueprintJsonStructure, EQueueMode::Spsc > mDownloadQueue;
 
 	UPROPERTY( BlueprintAssignable )
 	FOnDownloadComplete mFOnDownloadComplete;
 
 	UPROPERTY( BlueprintAssignable )
 	FOnDownloadProgress mOnDownloadProgress;
+
+	UPROPERTY()
+	AFGBlueprintSubsystem* mBlueprintSubsystem;
 };

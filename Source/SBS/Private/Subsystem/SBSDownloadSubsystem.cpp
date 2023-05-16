@@ -3,13 +3,14 @@
 
 #include "Subsystem/SBSDownloadSubsystem.h"
 
+#include "FGBlueprintSubsystem.h"
+#include "FGNetworkLibrary.h"
+#include "FGOnlineSessionSettings.h"
+#include "FindSessionsCallbackProxy.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "SBS/Public/Logging.h"
 #include "Subsystem/SBSApiSubsystem.h"
-#include "FGNetworkLibrary.h"
-#include "FGOnlineSessionSettings.h"
-#include "FindSessionsCallbackProxy.h"
 
 ASBSDownloadSubsystem::ASBSDownloadSubsystem()
 {
@@ -20,7 +21,8 @@ void ASBSDownloadSubsystem::BeginPlay()
 {
 	Super::BeginPlay();
 	mApiSubsystem = USBSApiSubsystem::Get( GetWorld() );
-	UE_LOG( LogSBS, Log, TEXT( "%s" ), *GetCurrentBlueprintPath() );
+	mCurrentDownload.ID.Empty();
+	mBlueprintSubsystem = AFGBlueprintSubsystem::Get( GetWorld() );
 }
 
 void ASBSDownloadSubsystem::SubsytemTick( float dt )
@@ -29,48 +31,47 @@ void ASBSDownloadSubsystem::SubsytemTick( float dt )
 
 	if( IsValid( mApiSubsystem ) )
 	{
-		if( !mDownloadQueue.IsEmpty() && mCurrentDownload.ID.IsEmpty() )
+		if( mDownloadQueueChecker.Num() > 0 && mCurrentDownload.ID.IsEmpty() )
 		{
 			bDownloadFailed = false;
 			bDownloadFile1Completed = false;
 			bDownloadFile2Completed = false;
-			if( mDownloadQueue.Enqueue( mCurrentDownload ) )
+
+			mCurrentDownload = mDownloadQueueChecker.Pop();
+			UE_LOG( LogSBS, Log, TEXT("Download now '%s' with SBS Id: '%s'"), *mCurrentDownload.OriginalName, *mCurrentDownload.ID );
+			FDownloadSbpStruct SbpStruct;
+			FDownloadSbpcfgStruct SbpcfgStruct;
+			SbpStruct.ID = mCurrentDownload.ID;
+			SbpcfgStruct.ID = mCurrentDownload.ID;
+
+			const FHttpRequestPtr Download1 = FHttpModule::Get().CreateRequest();
+			const FHttpRequestPtr Download2 = FHttpModule::Get().CreateRequest();
+
+			Download1->SetURL( SbpStruct.getUrl() );
+			Download2->SetURL( SbpcfgStruct.getUrl() );
+
+			TMap< FString, FString > Headers;
+			FApiPostStruct::MakeHeader( Headers );
+			for( auto Header : Headers )
 			{
-				mDownloadQueueChecker.Remove( mCurrentDownload );
-				FDownloadSbpStruct SbpStruct;
-				FDownloadSbpcfgStruct SbpcfgStruct;
-				SbpStruct.ID = mCurrentDownload.ID;
-				SbpcfgStruct.ID = mCurrentDownload.ID;
-
-				const FHttpRequestPtr Download1 = FHttpModule::Get().CreateRequest();
-				const FHttpRequestPtr Download2 = FHttpModule::Get().CreateRequest();
-
-				Download1->SetURL( SbpStruct.getUrl() );
-				Download2->SetURL( SbpcfgStruct.getUrl() );
-
-				TMap< FString, FString > Headers;
-				FApiPostStruct::MakeHeader( Headers );
-				for( auto Header : Headers )
+				if( !Header.Key.IsEmpty() && !Header.Value.IsEmpty() )
 				{
-					if( !Header.Key.IsEmpty() && !Header.Value.IsEmpty() )
-					{
-						Download1->SetHeader( Header.Key, Header.Value );
-						Download2->SetHeader( Header.Key, Header.Value );
-					}
+					Download1->SetHeader( Header.Key, Header.Value );
+					Download2->SetHeader( Header.Key, Header.Value );
 				}
-
-				Download1->SetVerb( "GET" );
-				Download2->SetVerb( "GET" );
-
-				Download1->OnProcessRequestComplete().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadCompleteFile1 );
-				Download1->OnRequestProgress().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadProgressFile1 );
-
-				Download2->OnProcessRequestComplete().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadCompleteFile2 );
-				Download2->OnRequestProgress().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadProgressFile2 );
-
-				Download1->ProcessRequest();
-				Download2->ProcessRequest();
 			}
+
+			Download1->SetVerb( "GET" );
+			Download2->SetVerb( "GET" );
+
+			Download1->OnProcessRequestComplete().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadCompleteFile1 );
+			Download1->OnRequestProgress().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadProgressFile1 );
+
+			Download2->OnProcessRequestComplete().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadCompleteFile2 );
+			Download2->OnRequestProgress().BindUObject( this, &ASBSDownloadSubsystem::OnDownloadProgressFile2 );
+
+			Download1->ProcessRequest();
+			Download2->ProcessRequest();
 		}
 	}
 }
@@ -81,8 +82,23 @@ void ASBSDownloadSubsystem::OnOneDownloadComplete()
 	{
 		if( !bDownloadFailed )
 		{
-			// Download succeeded
+			UFGBlueprintDescriptor* BP = mBlueprintSubsystem->GetBlueprintDescriptorByName( FText::FromString( mCurrentDownload.OriginalName ) );
+			if( BP )
+			{
+				//mBlueprintSubsystem->Delet( BP );
+			}
+
+			mBlueprintSubsystem->ReadBlueprintFromDisc( mCurrentDownload.OriginalName );
+			TArray< FBlueprintHeader > outHeaders;
+			mBlueprintSubsystem->FindBlueprintHeaders( GetCurrentBlueprintPath(), outHeaders );
+			//mBlueprintSubsystem->Init();
+			mBlueprintSubsystem->GenerateManifest();
+			mBlueprintSubsystem->EnumerateBlueprints();
+			mBlueprintSubsystem->EnumerateBlueprintConfigs();
+			mBlueprintSubsystem->MarkRecordDataDirty();
+			mBlueprintSubsystem->RefreshBlueprintsAndDescriptors();
 		}
+
 		if( mFOnDownloadComplete.IsBound() )
 		{
 			mFOnDownloadComplete.Broadcast( mCurrentDownload, !bDownloadFailed );
@@ -99,6 +115,28 @@ void ASBSDownloadSubsystem::OnDownloadCompleteFile1( FHttpRequestPtr Request, FH
 	}
 	else
 	{
+		FString Path = GetCurrentBlueprintPath() + "/" + mCurrentDownload.OriginalName + ".sbp";
+		CheckFilePath( Path );
+		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+		bool Failed = false;
+		IFileHandle* FileHandle = PlatformFile.OpenWrite( *Path );
+		if( !FileHandle )
+		{
+			UE_LOG( LogSBS, Error, TEXT("Something went wrong while saving the file '%s'"), *Path );
+			Failed = true;
+		}
+
+		if( !FileHandle->Write( Response->GetContent().GetData(), Response->GetContentLength() ) )
+		{
+			UE_LOG( LogSBS, Error, TEXT("Something went wrong while writing the response data to the file '%s'"), *Path );
+			Failed = true;
+		}
+		delete FileHandle;
+		if( Failed )
+		{
+			bDownloadFailed = true;
+		}
 	}
 	bDownloadFile1Completed = true;
 	OnOneDownloadComplete();
@@ -112,8 +150,30 @@ void ASBSDownloadSubsystem::OnDownloadCompleteFile2( FHttpRequestPtr Request, FH
 	}
 	else
 	{
+		FString Path = GetCurrentBlueprintPath() + "/" + mCurrentDownload.OriginalName + ".sbpcfg";
+		CheckFilePath( Path );
+		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+		bool Failed = false;
+		IFileHandle* FileHandle = PlatformFile.OpenWrite( *Path );
+		if( !FileHandle )
+		{
+			UE_LOG( LogSBS, Error, TEXT("Something went wrong while saving the file '%s'"), *Path );
+			Failed = true;
+		}
+
+		if( !FileHandle->Write( Response->GetContent().GetData(), Response->GetContentLength() ) )
+		{
+			UE_LOG( LogSBS, Error, TEXT("Something went wrong while writing the response data to the file '%s'"), *Path );
+			Failed = true;
+		}
+		delete FileHandle;
+		if( Failed )
+		{
+			bDownloadFailed = true;
+		}
 	}
-	bDownloadFile1Completed = true;
+	bDownloadFile2Completed = true;
 	OnOneDownloadComplete();
 }
 
@@ -153,6 +213,25 @@ void ASBSDownloadSubsystem::OnDownloadProgressFile2( FHttpRequestPtr HttpRequest
 void ASBSDownloadSubsystem::CheckFilePath( FString filePath )
 {
 	IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
+
+	if( !PlatformFile.DirectoryExists( *GetCurrentBlueprintPath() ) )
+	{
+		if( !PlatformFile.CreateDirectoryTree( *GetCurrentBlueprintPath() ) )
+		{
+			UE_LOG( LogSBS, Error, TEXT("Unable to create a directory '%s' to save the downloaded file"), *GetCurrentBlueprintPath() );
+			return;
+		}
+	}
+
+
+	if( FPaths::FileExists( *filePath ) )
+	{
+		IFileManager& FileManager = IFileManager::Get();
+		if( !FileManager.Delete( *filePath ) )
+		{
+			UE_LOG( LogSBS, Error, TEXT("Something went wrong while deleting the existing file '%s'"), *filePath );
+		}
+	}
 }
 
 
@@ -160,7 +239,6 @@ bool ASBSDownloadSubsystem::DownloadBlueprint( FBlueprintJsonStructure Blueprint
 {
 	if( !mDownloadQueueChecker.Contains( Blueprint ) && mCurrentDownload != Blueprint )
 	{
-		mDownloadQueue.Enqueue( Blueprint );
 		mDownloadQueueChecker.Add( Blueprint );
 		return true;
 	}
@@ -182,16 +260,17 @@ int32 ASBSDownloadSubsystem::GetDownloadStateForBlueprint( FBlueprintJsonStructu
 
 FString ASBSDownloadSubsystem::GetCurrentBlueprintPath()
 {
-	AFGPlayerState* PlayerState = UKBFL_Player::GetFgPlayerState( GetWorld() );
-	if( PlayerState )
-	{
-		UFGLocalPlayer* LocalPlayer = Cast< UFGLocalPlayer >( PlayerState->GetOwningController()->GetLocalPlayer() );
-		if( LocalPlayer )
-		{
-			const FBlueprintSessionResult SessionResult = UFGSessionLibrary::GetMySession( LocalPlayer );
-			const FFGOnlineSessionSettings SessionSettings = UFGSessionLibrary::GetSessionSettings( SessionResult );
-			return UFGSaveSystem::GetSaveDirectoryPath() + "blueprints/" + SessionSettings.SaveSessionName;
-		}
-	}
-	return FString();
+	return mBlueprintSubsystem->GetSessionBlueprintPath();
+}
+
+bool ASBSDownloadSubsystem::IsBlueprintInstalled( FBlueprintJsonStructure Blueprint )
+{
+	FString Path = GetCurrentBlueprintPath() + "/" + Blueprint.OriginalName + ".sbp";
+	FString PathCfg = GetCurrentBlueprintPath() + "/" + Blueprint.OriginalName + ".sbpcfg";
+	return FPaths::FileExists( *Path ) && FPaths::FileExists( *PathCfg );
+}
+
+bool ASBSDownloadSubsystem::OnBlueprintCreated_Implementation( UFGBlueprintDescriptor* BlueprintDescriptor, FBlueprintJsonStructure Blueprint )
+{
+	return false;
 }
