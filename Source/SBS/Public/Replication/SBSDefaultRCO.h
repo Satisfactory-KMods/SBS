@@ -10,14 +10,13 @@
 /**
  * 
  */
-UCLASS()
-class SBS_API USBSDefaultRCO : public UFGRemoteCallObject
-{
-	GENERATED_BODY()
+UCLASS( )
+class SBS_API USBSDefaultRCO : public UFGRemoteCallObject {
+	GENERATED_BODY( )
 
-public:
-	virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
+	public:
+		virtual void GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const override;
 
-	UPROPERTY( Replicated )
-	bool mDummy2 = true;
+		UPROPERTY( Replicated )
+		bool mDummy2 = true;
 };

@@ -13,73 +13,86 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnDownloadComplete, FBlueprintJso
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams( FOnDownloadProgress, FBlueprintJsonStructure, Blueprint, float, Progress, FString, FileName );
 
-UCLASS()
-class SBS_API ASBSDownloadSubsystem : public AKPCLModSubsystem
-{
-	GENERATED_BODY()
+UCLASS( )
+class SBS_API ASBSDownloadSubsystem : public AKPCLModSubsystem {
+	GENERATED_BODY( )
 
-public:
-	// Sets default values for this actor's properties
-	ASBSDownloadSubsystem();
+	public:
+		// Sets default values for this actor's properties
+		ASBSDownloadSubsystem( );
 
-	virtual void BeginPlay() override;
+		virtual void BeginPlay( ) override;
 
-	virtual void SubsytemTick( float dt ) override;
+		virtual void SubsytemTick( float dt ) override;
 
-	UFUNCTION( BlueprintPure, meta = (WorldContext = "WorldContext"), Category="KMods|Subsystem|SBS", DisplayName="GetSBSDownloadSubsystem" )
-	static ASBSDownloadSubsystem* Get( UObject* WorldContext ) { return Cast< ASBSDownloadSubsystem >( UKBFL_Util::GetSubsystemFromChild( WorldContext, StaticClass() ) ); }
+		UFUNCTION( BlueprintPure, meta = (WorldContext = "WorldContext"), Category="KMods|Subsystem|SBS", DisplayName="GetSBSDownloadSubsystem" )
+		static ASBSDownloadSubsystem* Get( UObject* WorldContext ) {
+			return Cast< ASBSDownloadSubsystem >( UKBFL_Util::GetSubsystemFromChild( WorldContext, StaticClass( ) ) );
+		}
 
-	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-	bool DownloadBlueprint( FBlueprintJsonStructure Blueprint );
+		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+		bool DownloadBlueprint( FBlueprintJsonStructure Blueprint );
 
-	// 0 = not pending; 1 = pending; 2 = running
-	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-	int32 GetDownloadStateForBlueprint( FBlueprintJsonStructure Blueprint );
+		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+		bool DownloadBlueprintPack( FBlueprintPackJsonStructure BlueprintPack );
 
-	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-	FString GetCurrentBlueprintPath();
+		// 0 = not pending; 1 = pending; 2 = running
+		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+		int32 GetDownloadStateForBlueprint( FBlueprintJsonStructure Blueprint );
 
-	UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-	bool IsBlueprintInstalled( FBlueprintJsonStructure Blueprint );
+		// 0 = not pending; 1 = running
+		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+		bool GetDownloadStateForBlueprintPack( FBlueprintPackJsonStructure BlueprintPack );
 
-	UFUNCTION( BlueprintNativeEvent, Category = "KMods|Json" )
-	bool OnBlueprintCreated( UFGBlueprintDescriptor* BlueprintDescriptor, FBlueprintJsonStructure Blueprint );
+		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+		FString GetCurrentBlueprintPath( );
 
-	UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-	static UFGLocalPlayer* SBS_GetLocalPlayer( UObject* WorldContext ) { return Cast< UFGLocalPlayer >( UKBFL_Player::GetFgPlayerState( WorldContext )->GetOwningController()->GetLocalPlayer() ); };
+		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
+		bool IsBlueprintInstalled( FBlueprintJsonStructure Blueprint );
 
-	UPROPERTY( BlueprintReadOnly )
-	FString mSaveSessionName = FString();
+		UFUNCTION( BlueprintNativeEvent, Category = "KMods|Json" )
+		bool OnBlueprintCreated( UFGBlueprintDescriptor* BlueprintDescriptor, FBlueprintJsonStructure Blueprint );
 
-private:
-	USBSApiSubsystem* mApiSubsystem;
+		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
+		static UFGLocalPlayer* SBS_GetLocalPlayer( UObject* WorldContext ) {
+			return Cast< UFGLocalPlayer >( UKBFL_Player::GetFgPlayerState( WorldContext )->GetOwningController( )->GetLocalPlayer( ) );
+		};
 
-	bool bDownloadFile1Completed;
-	bool bDownloadFile2Completed;
+		UPROPERTY( BlueprintReadOnly )
+		FString mSaveSessionName = FString( );
 
-	bool bDownloadFailed;
+	private:
+		UPROPERTY( )
+		USBSApiSubsystem* mApiSubsystem;
 
-	void OnOneDownloadComplete();
+		bool bDownloadFile1Completed;
+		bool bDownloadFile2Completed;
 
-	void OnDownloadCompleteFile1( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
-	void OnDownloadCompleteFile2( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+		bool bDownloadFailed;
 
-	void OnDownloadProgressFile1( FHttpRequestPtr HttpRequest, int32 BytesSend, int32 InBytesReceived ) const;
-	void OnDownloadProgressFile2( FHttpRequestPtr HttpRequest, int32 BytesSend, int32 InBytesReceived ) const;
+		void OnOneDownloadComplete( );
 
-	void CheckFilePath( FString filePath );
+		void OnDownloadCompleteFile1( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
 
-	UPROPERTY()
-	FBlueprintJsonStructure mCurrentDownload;
+		void OnDownloadCompleteFile2( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
 
-	TArray< FBlueprintJsonStructure > mDownloadQueueChecker;
+		void OnDownloadProgressFile1( FHttpRequestPtr HttpRequest, int32 BytesSend, int32 InBytesReceived ) const;
 
-	UPROPERTY( BlueprintAssignable )
-	FOnDownloadComplete mFOnDownloadComplete;
+		void OnDownloadProgressFile2( FHttpRequestPtr HttpRequest, int32 BytesSend, int32 InBytesReceived ) const;
 
-	UPROPERTY( BlueprintAssignable )
-	FOnDownloadProgress mOnDownloadProgress;
+		void CheckFilePath( FString filePath );
 
-	UPROPERTY()
-	AFGBlueprintSubsystem* mBlueprintSubsystem;
+		UPROPERTY( )
+		FBlueprintJsonStructure mCurrentDownload;
+
+		TArray< FBlueprintJsonStructure > mDownloadQueueChecker;
+
+		UPROPERTY( BlueprintAssignable )
+		FOnDownloadComplete mFOnDownloadComplete;
+
+		UPROPERTY( BlueprintAssignable )
+		FOnDownloadProgress mOnDownloadProgress;
+
+		UPROPERTY( )
+		AFGBlueprintSubsystem* mBlueprintSubsystem;
 };

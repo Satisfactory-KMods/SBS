@@ -2,183 +2,272 @@
 #include "Subsystem/SBSApiSubsystem.h"
 
 #include "HttpModule.h"
-#include "Interfaces/IHttpRequest.h"
-#include "Interfaces/IHttpResponse.h"
+
 #include "SBS/Public/Logging.h"
 #include "Structures/ApiJsonStruct.h"
 #include "Subsystems/KBFLAssetDataSubsystem.h"
 
-void USBSApiSubsystem::Initialize( FSubsystemCollectionBase& Collection )
-{
-	Collection.InitializeDependency( UKBFLAssetDataSubsystem::StaticClass() );
+void USBSApiSubsystem::Initialize( FSubsystemCollectionBase& Collection ) {
+	Collection.InitializeDependency( UKBFLAssetDataSubsystem::StaticClass( ) );
 	Super::Initialize( Collection );
 
-	UConfigProperty* Property = UKBFL_ConfigTools::GetConfigPropertyByKey( FSBSStatics::GETMODCONFIG(), "accountkey" );
+	FTicker::GetCoreTicker( ).AddTicker( FTickerDelegate::CreateUObject( this, &USBSApiSubsystem::Tick ), 1 );
+
+	UConfigProperty* Property = UKBFL_ConfigTools::GetConfigPropertyByKey( FSBSStatics::GETMODCONFIG( ), "accountkey" );
 	Property->OnPropertyValueChanged.AddUniqueDynamic( this, &USBSApiSubsystem::OnAccountKeyChanged );
-	mOnDynamicQueryDone.AddUniqueDynamic( this, &USBSApiSubsystem::OnCheckKey );
-	OnAccountKeyChanged();
+	OnAccountKeyChanged( );
 }
 
-void USBSApiSubsystem::QueryApi( FFilterPostStruct Post )
-{
-	if( bIsInQuery )
-	{
+void USBSApiSubsystem::Deinitialize( ) {
+	FTicker::GetCoreTicker( ).RemoveTicker( TickDelegateHandle );
+	Super::Deinitialize( );
+}
+
+bool USBSApiSubsystem::Tick( float DeltaSeconds ) {
+	if( !IsQuery( ) && mDynamicQueue.Num( ) > 0 ) {
+		mDynamicQuery = mDynamicQueue.Pop( );
+
+		const FHttpRequestPtr Request = FHttpModule::Get( ).CreateRequest( );
+		Request->SetURL( mDynamicQuery.getUrl( ) );
+		TMap< FString, FString > Headers;
+		mDynamicQuery.MakeHeader( Headers );
+		for( auto Header : Headers ) {
+			if( !Header.Key.IsEmpty( ) && !Header.Value.IsEmpty( ) ) {
+				Request->SetHeader( Header.Key, Header.Value );
+			}
+		}
+
+		Request->SetVerb( "POST" );
+		Request->SetContentAsString( mDynamicQuery.ToString( ) );
+		Request->OnProcessRequestComplete( ).BindUObject( this, &USBSApiSubsystem::OnQueryDynamicDone );
+		Request->SetTimeout( 10 );
+		if( Request->ProcessRequest( ) ) {
+			bIsInQuery = true;
+		}
+	}
+
+	return true;
+}
+
+void USBSApiSubsystem::QueryApi( FFilterPostStruct Post ) {
+	if( bIsInQuery ) {
 		return;
 	}
 
-	const FHttpRequestPtr Request = FHttpModule::Get().CreateRequest();
-	Request->SetURL( Post.getUrl() );
+	const FHttpRequestPtr Request = FHttpModule::Get( ).CreateRequest( );
+	Request->SetURL( Post.getUrl( ) );
 	TMap< FString, FString > Headers;
 	Post.MakeHeader( Headers );
-	for( auto Header : Headers )
-	{
-		if( !Header.Key.IsEmpty() && !Header.Value.IsEmpty() )
-		{
+	for( auto Header : Headers ) {
+		if( !Header.Key.IsEmpty( ) && !Header.Value.IsEmpty( ) ) {
 			Request->SetHeader( Header.Key, Header.Value );
 		}
 	}
 
 	Request->SetVerb( "POST" );
-	Request->SetContentAsString( Post.ToString() );
-	Request->OnProcessRequestComplete().BindUObject( this, &USBSApiSubsystem::OnBlueprintQueryDone );
+	Request->SetContentAsString( Post.ToString( ) );
+	Request->OnProcessRequestComplete( ).BindUObject( this, &USBSApiSubsystem::OnBlueprintQueryDone );
 	Request->SetTimeout( 10 );
-	if( Request->ProcessRequest() )
-	{
+	if( Request->ProcessRequest( ) ) {
 		bIsInQuery = true;
 	}
 }
 
-void USBSApiSubsystem::QueryApiDynamic( FDynamicApiPostStruct Post )
-{
-	mDynamicQuery = Post;
-	if( bIsInQuery )
-	{
+void USBSApiSubsystem::QueryPackApi( FPackFilterPostStruct Post ) {
+	if( bIsInPackQuery ) {
 		return;
 	}
 
-	const FHttpRequestPtr Request = FHttpModule::Get().CreateRequest();
-	Request->SetURL( Post.getUrl() );
+	const FHttpRequestPtr Request = FHttpModule::Get( ).CreateRequest( );
+	Request->SetURL( Post.getUrl( ) );
 	TMap< FString, FString > Headers;
 	Post.MakeHeader( Headers );
-	for( auto Header : Headers )
-	{
-		if( !Header.Key.IsEmpty() && !Header.Value.IsEmpty() )
-		{
+	for( auto Header : Headers ) {
+		if( !Header.Key.IsEmpty( ) && !Header.Value.IsEmpty( ) ) {
 			Request->SetHeader( Header.Key, Header.Value );
 		}
 	}
 
 	Request->SetVerb( "POST" );
-	Request->SetContentAsString( Post.ToString() );
-	Request->OnProcessRequestComplete().BindUObject( this, &USBSApiSubsystem::OnQueryDynamicDone );
+	Request->SetContentAsString( Post.ToString( ) );
+	Request->OnProcessRequestComplete( ).BindUObject( this, &USBSApiSubsystem::OnBlueprintPackQueryDone );
 	Request->SetTimeout( 10 );
-	if( Request->ProcessRequest() )
-	{
-		bIsInQuery = true;
+	if( Request->ProcessRequest( ) ) {
+		bIsInPackQuery = true;
 	}
 }
 
-void USBSApiSubsystem::QueryRating( FRatingPostStruct Post )
-{
-	if( !IsQuery() )
-	{
+void USBSApiSubsystem::QueryApiDynamic( FDynamicApiPostStruct Post ) {
+	mDynamicQueue.AddUnique( Post );
+}
+
+void USBSApiSubsystem::QueryRating( FRatingPostStruct Post ) {
+	if( !IsQuery( ) ) {
 		QueryApiDynamic( Post );
 	}
 }
 
-bool USBSApiSubsystem::IsQuery() const
-{
-	return !mDynamicQuery.Indetifier.IsEmpty();
+bool USBSApiSubsystem::IsQuery( ) const {
+	return !mDynamicQuery.Indetifier.IsEmpty( );
 }
 
-bool USBSApiSubsystem::HasAuth() const
-{
-	return bHasAuth;
+bool USBSApiSubsystem::IsPackQuery( ) const {
+	return bIsInQuery;
 }
 
-inline USBSApiSubsystem* USBSApiSubsystem::Get( const UObject* WorldContext )
-{
-	if( IsValid( WorldContext ) )
-	{
-		return WorldContext->GetWorld()->GetGameInstance()->GetSubsystem< USBSApiSubsystem >();
+bool USBSApiSubsystem::IsBpQuery( ) const {
+	return bIsInPackQuery;
+}
+
+bool USBSApiSubsystem::IsAuthQuery( ) const {
+	return bIsInAuthQuery;
+}
+
+void USBSApiSubsystem::QueryForAuth( ) {
+	if( bIsInAuthQuery ) {
+		return;
+	}
+
+	const FHttpRequestPtr Request = FHttpModule::Get( ).CreateRequest( );
+	Request->SetURL( mUserData.getUrl( ) );
+	TMap< FString, FString > Headers;
+	FApiPostStruct::MakeHeader( Headers );
+	for( auto Header : Headers ) {
+		if( !Header.Key.IsEmpty( ) && !Header.Value.IsEmpty( ) ) {
+			Request->SetHeader( Header.Key, Header.Value );
+		}
+	}
+
+	Request->SetVerb( "POST" );
+	Request->SetContentAsString( "{}" );
+	Request->OnProcessRequestComplete( ).BindUObject( this, &USBSApiSubsystem::OnQueryDynamicDone );
+	Request->SetTimeout( 10 );
+	if( Request->ProcessRequest( ) ) {
+		bIsInAuthQuery = true;
+	}
+}
+
+inline USBSApiSubsystem* USBSApiSubsystem::Get( const UObject* WorldContext ) {
+	if( IsValid( WorldContext ) ) {
+		return WorldContext->GetWorld( )->GetGameInstance( )->GetSubsystem< USBSApiSubsystem >( );
 	}
 	return nullptr;
 }
 
-void USBSApiSubsystem::OnBlueprintQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess )
-{
+void USBSApiSubsystem::OnBlueprintQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess ) {
 	bIsInQuery = false;
 	bool success = false;
-	if( bSuccess )
-	{
+	if( bSuccess ) {
 		TSharedPtr< FJsonObject > JsonObject = MakeShareable( new FJsonObject );
-		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString() ), JsonObject ) )
-		{
+		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString( ) ), JsonObject ) ) {
 			const TArray< TSharedPtr< FJsonValue > >* DataArray;
-			if( JsonObject->TryGetArrayField( "blueprints", DataArray ) )
-			{
+			if( JsonObject->TryGetArrayField( "blueprints", DataArray ) ) {
 				success = JsonObject->TryGetNumberField( "totalBlueprints", mTotalBlueprints );
-				mCurrentBlueprints.Empty();
-				for( TSharedPtr< FJsonValue, ESPMode::NotThreadSafe > JsonValue : *DataArray )
-				{
+				mCurrentBlueprints.Empty( );
+				for( TSharedPtr< FJsonValue, ESPMode::NotThreadSafe > JsonValue : *DataArray ) {
 					FBlueprintJsonStructure Struct;
-					Struct.setJsonObject( JsonValue->AsObject() );
-					Struct.parse();
+					Struct.setJsonObject( JsonValue->AsObject( ) );
+					Struct.parse( );
 					mCurrentBlueprints.Add( Struct );
 				}
 			}
 		}
 	}
 
-	if( mOnQueryDone.IsBound() )
-	{
+	if( mOnQueryDone.IsBound( ) ) {
 		mOnQueryDone.Broadcast( mCurrentBlueprints, mTotalBlueprints, success );
 	}
 }
 
-void USBSApiSubsystem::OnQueryDynamicDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess )
-{
-	bIsInQuery = false;
+void USBSApiSubsystem::OnBlueprintPackQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess ) {
+	bIsInPackQuery = false;
 	bool success = false;
-	if( bSuccess )
-	{
+	if( bSuccess ) {
 		TSharedPtr< FJsonObject > JsonObject = MakeShareable( new FJsonObject );
-		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString() ), JsonObject ) )
-		{
-			const bool error = JsonObject->TryGetStringField( "error", mDynamicQuery.FailedText );
-			if( Response->GetResponseCode() == 200 )
-			{
-				success = !error;
+		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString( ) ), JsonObject ) ) {
+			const TArray< TSharedPtr< FJsonValue > >* DataArray;
+			if( JsonObject->TryGetArrayField( "blueprints", DataArray ) ) {
+				success = JsonObject->TryGetNumberField( "totalBlueprints", mTotalBlueprintPacks );
+				mCurrentBlueprintPacks.Empty( );
+				for( TSharedPtr< FJsonValue, ESPMode::NotThreadSafe > JsonValue : *DataArray ) {
+					FBlueprintPackJsonStructure Struct;
+					Struct.setJsonObject( JsonValue->AsObject( ) );
+					Struct.parse( );
+					mCurrentBlueprintPacks.Add( Struct );
+				}
 			}
 		}
 	}
-	else
-	{
+
+	if( mOnPackQueryDone.IsBound( ) ) {
+		mOnPackQueryDone.Broadcast( mCurrentBlueprintPacks, mTotalBlueprintPacks, success );
+	}
+}
+
+void USBSApiSubsystem::OnQueryDynamicDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess ) {
+	bIsInQuery = false;
+	bool success = false;
+	if( bSuccess ) {
+		TSharedPtr< FJsonObject > JsonObject = MakeShareable( new FJsonObject );
+		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString( ) ), JsonObject ) ) {
+			const bool error = JsonObject->TryGetStringField( "error", mDynamicQuery.FailedText );
+			if( Response->GetResponseCode( ) == 200 ) {
+				success = !error;
+				if( success ) {
+					mDynamicQuery.OnRequestDone( Request, Response, this, JsonObject );
+				}
+			}
+		}
+	}
+	else {
 		mDynamicQuery.FailedText = "Failed to fetch API";
 	}
 
-	if( mOnQueryDone.IsBound() )
-	{
+	if( mOnDynamicQueryDone.IsBound( ) ) {
 		mOnDynamicQueryDone.Broadcast( mDynamicQuery, success );
 	}
-	mDynamicQuery.Indetifier.Empty();
+	mDynamicQuery.Indetifier.Empty( );
 }
 
-void USBSApiSubsystem::OnAccountKeyChanged()
-{
-	FString AuthKey = FSBSStatics::GetAccountKey();
-	if( !AuthKey.IsEmpty() )
-	{
-		FAuthCheckPostStruct Post;
-		Post.Indetifier = "AuthCheck";
-		QueryApiDynamic( Post );
+void USBSApiSubsystem::OnQueryAuthDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess ) {
+	bIsInAuthQuery = false;
+	bool success = false;
+	if( bSuccess ) {
+		TSharedPtr< FJsonObject > JsonObject = MakeShareable( new FJsonObject );
+		if( FJsonSerializer::Deserialize( TJsonReaderFactory< >::Create( Response->GetContentAsString( ) ), JsonObject ) ) {
+			const bool error = JsonObject->TryGetStringField( "error", mDynamicQuery.FailedText );
+			if( Response->GetResponseCode( ) == 200 ) {
+				success = !error;
+			}
+			if( !error ) {
+				if( !JsonObject->TryGetNumberField( TEXT( "role" ), mUserData.Role ) ) {
+					mUserData.Role = -1;
+				}
+				else {
+					JsonObject->TryGetStringField( TEXT( "_id" ), mUserData.ID );
+					JsonObject->TryGetStringField( TEXT( "username" ), mUserData.Username );
+				}
+			}
+			else {
+				mUserData.Role = -1;
+			}
+		}
+		else {
+			mUserData.Role = -1;
+		}
+	}
+	else {
+		mUserData.Role = -1;
+	}
+
+	if( mOnAuthUpdated.IsBound( ) ) {
+		mOnAuthUpdated.Broadcast( mUserData, success );
 	}
 }
 
-void USBSApiSubsystem::OnCheckKey( FDynamicApiPostStruct PostResult, bool Success )
-{
-	if( PostResult.Indetifier == FString( "AuthCheck" ) )
-	{
-		bHasAuth = Success;
+void USBSApiSubsystem::OnAccountKeyChanged( ) {
+	FString AuthKey = FSBSStatics::GetAccountKey( );
+	if( !AuthKey.IsEmpty( ) ) {
+		QueryForAuth( );
 	}
 }
