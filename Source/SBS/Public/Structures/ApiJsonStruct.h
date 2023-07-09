@@ -101,7 +101,10 @@ struct SBS_API FBlueprintJsonStructure : public FApiJsonStruct {
 		TArray< FString > Images;
 
 		UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
-		FString OriginalName;
+	FString OriginalName;
+
+	UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
+	FString SCIM;
 
 		UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
 		FBlueprintJsonColorStructure IconData;

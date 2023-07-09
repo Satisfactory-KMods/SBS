@@ -17,6 +17,7 @@ void FBlueprintJsonStructure::parse( ) {
 		mJsonObject->TryGetNumberField( "totalRating", TotalRating );
 		mJsonObject->TryGetNumberField( "totalRatingCount", TotalRatingCount );
 		mJsonObject->TryGetNumberField( "downloads", Downloads );
+		mJsonObject->TryGetStringField( "SCIM", SCIM );
 
 		const TArray< TSharedPtr< FJsonValue > >* DataArray;
 		if( mJsonObject->TryGetArrayField( "tags", DataArray ) ) {
