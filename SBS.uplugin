@@ -1,37 +1,43 @@
 {
-  "FileVersion": 3,
-  "Version": 1,
-  "VersionName": "1.2.0",
-  "SemVersion": "1.2.0",
-  "FriendlyName": "SBS",
-  "Description": "Satisfactory Blueprint Storage is a blueprint website to share blueprints with other players. https://sbs.kyrium.space/",
-  "Category": "Modding",
-  "CreatedBy": "Kyri123/Kyrium",
-  "CreatedByURL": "https://github.com/Kyri123",
-  "DocsURL": "",
-  "MarketplaceURL": "",
-  "SupportURL": "",
-  "CanContainContent": true,
-  "IsBetaVersion": false,
-  "IsExperimentalVersion": false,
-  "Installed": true,
-  "Modules": [
-    {
-      "Name": "SBS",
-      "Type": "Runtime",
-      "LoadingPhase": "Default"
-    }
-  ],
-  "Plugins": [
-    {
-      "Name": "SML",
-      "SemVersion": "^3.4.1",
-      "Enabled": true
-    },
-    {
-      "Name": "KPrivateCodeLib",
-      "SemVersion": "^1.10.1",
-      "Enabled": true
-    }
-  ]
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.2.0",
+	"SemVersion": "1.2.0",
+	"FriendlyName": "SBS",
+	"Description": "Satisfactory Blueprint Storage is a blueprint website to share blueprints with other players. https://sbs.kyrium.space/",
+	"Category": "Modding",
+	"CreatedBy": "Kyri123/Kyrium",
+	"CreatedByURL": "https://github.com/Kyri123",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": true,
+	"Modules": [
+		{
+			"Name": "SBS",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "SML",
+			"SemVersion": "^3.4.1",
+			"Enabled": true
+		},
+		{
+			"Name": "KPrivateCodeLib",
+			"SemVersion": "^1.10.1",
+			"Enabled": true
+		}
+	],
+	"LocalizationTargets": [
+		{
+			"Name": "SBS",
+			"LoadingPolicy": "Always"
+		}
+	]
 }

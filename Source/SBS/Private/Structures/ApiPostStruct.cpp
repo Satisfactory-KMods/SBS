@@ -81,7 +81,7 @@ void FGetTagsStruct::OnRequestDone( FHttpRequestPtr Request, FHttpResponsePtr Re
 	Subsystem->mTags.Empty( );
 	const TArray< TSharedPtr< FJsonValue > >* DataArray;
 	if( JsonObject->TryGetArrayField( "tags", DataArray ) ) {
-		for( TSharedPtr< FJsonValue, ESPMode::NotThreadSafe > JsonValue : *DataArray ) {
+		for( auto JsonValue : *DataArray ) {
 			FBlueprintJsonTagStructure Struct;
 			Struct.setJsonObject( JsonValue->AsObject( ) );
 			Struct.parse( );
