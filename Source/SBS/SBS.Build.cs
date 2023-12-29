@@ -28,7 +28,6 @@ public class SBS : ModuleRules
 				"AIModule",
 				"GameplayTasks",
 				"SlateCore", "Slate", "UMG",
-				"InstancedSplines",
 				"RenderCore",
 				"CinematicCamera",
 				"Foliage",

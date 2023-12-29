@@ -1,8 +1,8 @@
 {
 	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.2.0",
-	"SemVersion": "1.2.0",
+	"Version": 2,
+	"VersionName": "2.0.0",
+	"SemVersion": "2.0.0",
 	"FriendlyName": "SBS",
 	"Description": "Satisfactory Blueprint Storage is a blueprint website to share blueprints with other players. https://sbs.kyrium.space/",
 	"Category": "Modding",
@@ -25,12 +25,12 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.4.1",
+			"SemVersion": "^3.6.1",
 			"Enabled": true
 		},
 		{
 			"Name": "KPrivateCodeLib",
-			"SemVersion": "^1.10.1",
+			"SemVersion": "^2.2.2",
 			"Enabled": true
 		}
 	],

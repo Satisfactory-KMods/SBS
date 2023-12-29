@@ -77,6 +77,3 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 *.zip
-./Source/SBS/Public/Structures/ApiStatics.h
-./Source/SBS/Private/Structures/ApiStatics.cpp
-Source/SBS/Public/Structures/ApiStatics.h
