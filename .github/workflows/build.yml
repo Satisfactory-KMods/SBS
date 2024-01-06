@@ -1,0 +1,247 @@
+name: build and create release
+
+on:
+    push:
+
+env:
+    # tokens
+    GH_TOKEN: ${{ secrets.PAT }}
+    GITHUB_TOKEN: ${{ secrets.PAT }}
+
+    # paths
+    UE_PATH: "C:\\\"Program Files\"\\\"Unreal Engine - CSS\""
+    SML_CACHE_PATH: "C:\\Users\\Administrator\\Documents\\SML"
+
+    # or use a repo?
+    MAIN_MOD: SBS
+    PLUGIN_NAMES_PARAM: '"SBS" "KPrivateCodeLib" "KUI" "KBFL"'
+    WORKING_DIR: "C:\\Users\\Administrator\\Documents\\workflow"
+    WEB_ACCESS_PATH: "C:\\xampp\\htdocs"
+    MOD_ID: "9muBparb6nMvpr"
+
+jobs:
+    build-mod:
+        name: Build Mod and Prepare Releases
+        timeout-minutes: 180
+        runs-on: self-hosted
+        defaults:
+          run:
+            working-directory: "C:\\Users\\Administrator\\Documents\\workflow"
+        steps:
+            - name: Use SML Cache
+              run: |
+                $robocopy_process = Start-Process "robocopy" -ArgumentList "${{ env.SML_CACHE_PATH }} $PWD\SML /S /E /R:5 /W:5 /TBD /MT:32 /LOG:copy.log" -PassThru -Wait
+                if ($robocopy_process.ExitCode -ne 1) { exit 1 }
+
+            # ----------------------------------------------------------------------
+            #                    START OF BUILDING PLUGINS
+            #               FROM HERE ON OUT, IT'S ALL ABOUT PLUGINS
+            #                  MANUALLY ADD PLUGINS TO BUILD HERE
+            # ----------------------------------------------------------------------
+
+            - name: Clone Repos
+              run: |
+                Git-Clone "https://oauth2:${{ secrets.PAT }}@github.com/Satisfactory-KMods/WorkflowPatcher.git" "$PWD/Patcher"
+                Git-Clone "https://oauth2:${{ secrets.PAT }}@github.com/Satisfactory-KMods/SBS.git" "$PWD/SML/Mods/SBS"
+                Git-Clone "https://oauth2:${{ secrets.PAT }}@github.com/Satisfactory-KMods/KPrivateCodeLib.git" "$PWD/SML/Mods/KPrivateCodeLib"
+                Git-Clone "https://oauth2:${{ secrets.PAT }}@github.com/Satisfactory-KMods/KBFL.git" "$PWD/SML/Mods/KBFL"
+                Git-Clone "https://oauth2:${{ secrets.PAT }}@github.com/Satisfactory-KMods/KUI.git" "$PWD/SML/Mods/KUI"
+                
+            - name: Run Patcher and Version Updater
+              run: |
+                cd Patcher
+                pnpm i
+                pnpm run Header
+                pnpm run Content
+                pnpm run UpdateUPlugins ${{ env.MAIN_MOD }}
+                cd ..
+
+            - name: Generate project
+              run: |
+                ${{ env.UE_PATH }}\Engine\Build\BatchFiles\Build.bat -projectfiles -project="$PWD\SML\FactoryGame.uproject" -game -rocket -progres
+
+            - name: Build c++ dev editor
+              run: |
+                MSBuild.exe $PWD\SML\FactoryGame.sln /p:Configuration="Development Editor" /p:Platform="Win64" /t:"Games\FactoryGame"
+
+            - name: Build c++ shipping
+              run: |
+                MSBuild.exe $PWD\SML\FactoryGame.sln /p:Configuration="Shipping" /p:Platform="Win64" /t:"Games\FactoryGame"
+
+            - name: Package KPrivateCodeLib
+              env:
+                PLUGIN: "KPrivateCodeLib"
+              run: |
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+
+            - name: Package SBS
+              env:
+                PLUGIN: "SBS"
+              run: |
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+
+            - name: Package KUI
+              env:
+                PLUGIN: "KUI"
+              run: |
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+  
+            - name: Package KBFL
+              env:
+                PLUGIN: "KBFL"
+              run: |
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+ 
+            # ----------------------------------------------------------------------
+            #                    END OF BUILDING PLUGINS
+            # ----------------------------------------------------------------------
+
+            - name: Archive Artifact Result to Webservice
+              run: |
+                $Folder = "${{ env.WEB_ACCESS_PATH }}\${{ env.MAIN_MOD }}\plugins"
+                if (Test-Path -Path $Folder) {
+                  Remove-Item $Folder -Recurse -Force
+                }
+                New-Item -Force -ItemType Directory -Path $Folder
+                $robocopy_process = Start-Process "robocopy" -ArgumentList "$PWD\SML\Saved\ArchivedPlugins ${{ env.WEB_ACCESS_PATH }}\${{ env.MAIN_MOD }}\plugins /S /E /R:5 /W:5 /TBD /MT:32" -PassThru -Wait
+                if ($robocopy_process.ExitCode -ne 1) { exit 1 } 
+
+            - name: Create Cache
+              run: | 
+                Remove-Item "${{ env.SML_CACHE_PATH }}" -Recurse -Force
+                $robocopy_process = Start-Process "robocopy" -ArgumentList "$PWD\SML ${{ env.SML_CACHE_PATH }} /S /E /R:5 /W:5 /TBD /MT:32 /LOG:copy.log" -PassThru -Wait
+                if ($robocopy_process.ExitCode -ne 1) { exit 1 }
+                Remove-Item "${{ env.SML_CACHE_PATH }}\Saved\ArchivedPlugins" -Recurse -Force
+
+            - name: Package for Patreon
+              run: |
+                cd Patcher
+                pnpm run PreparePatreon ${{ env.PLUGIN_NAMES_PARAM }}
+                cd ..
+
+            - name: Archive Artifact Result to Webservice
+              run: |
+                $Folder = "${{ env.WEB_ACCESS_PATH }}\${{ env.MAIN_MOD }}\zips"
+                if (Test-Path -Path $Folder) {
+                  Remove-Item $Folder -Recurse -Force
+                }
+                New-Item -Force -ItemType Directory -Path $Folder
+                $robocopy_process = Start-Process "robocopy" -ArgumentList "$PWD\Zips ${{ env.WEB_ACCESS_PATH }}\${{ env.MAIN_MOD }}\zips /S /E /R:5 /W:5 /TBD /MT:32" -PassThru -Wait
+                if ($robocopy_process.ExitCode -ne 1) { exit 1 } 
+
+            - name: Cleanup
+              if: always()
+              run: |
+                $paths = (Get-ChildItem).FullName
+                foreach($filePath in $paths)
+                {
+                  Remove-Item $filePath -Recurse -Force
+                  Write-Host "Path $filePath removed"
+                }
+                Write-Host "Cleared"
+
+    release-patreon:
+        needs: build-mod
+        if: github.ref == 'refs/heads/patreon'
+        name: Release Patreon Version
+        timeout-minutes: 60
+        runs-on: ubuntu-latest
+        steps:
+          - name: Download Zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}-Windows.zip
+          
+          - name: Install Node.js
+            uses: actions/setup-node@v3
+            with:
+              node-version: 18
+    
+          - uses: pnpm/action-setup@v2
+            name: Install pnpm
+            with:
+              version: 8
+              run_install: false
+
+          - name: Checkout Repo
+            uses: actions/checkout@v3
+            with:
+              path: 'Mod'
+
+          - name: Checkout Patcher
+            uses: actions/checkout@v3
+            with:
+              repository: 'Satisfactory-KMods/WorkflowPatcher'
+              token: ${{ secrets.PAT }}
+              path: 'Patcher'
+
+          - name: Release with script
+            run: |
+              cd Patcher
+              mkdir --parents Files/Release
+              mv ../mod.zip Files/Release/mod.zip
+              pnpm i
+              pnpm run release-patreon ${{ env.MAIN_MOD }}
+
+    release-smr:
+        needs: build-mod
+        if: github.ref == 'refs/heads/main'
+        name: Release SMR Version
+        timeout-minutes: 60
+        runs-on: ubuntu-latest
+        steps:
+          - name: Install ficsit-cli and jq
+            run: |
+              apt-get update && apt-get install -y jq
+              wget https://github.com/satisfactorymodding/ficsit-cli/releases/download/v0.5.1/ficsit_linux_amd64.deb
+              dpkg -i ficsit_linux_amd64.deb
+
+          - name: Download Zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}-Windows.zip
+          
+          - name: Install Node.js
+            uses: actions/setup-node@v3
+            with:
+              node-version: 18
+    
+          - uses: pnpm/action-setup@v2
+            name: Install pnpm
+            with:
+              version: 8
+              run_install: false
+
+          - name: Checkout Repo
+            uses: actions/checkout@v3
+            with:
+              path: 'Mod'
+
+          - name: Checkout Patcher
+            uses: actions/checkout@v3
+            with:
+              repository: 'Satisfactory-KMods/WorkflowPatcher'
+              token: ${{ secrets.PAT }}
+              path: 'Patcher'
+
+          - name: Release with ficsit-cli
+            id: ficsit
+            run: |
+              VERSION=$(cat Mod/${{ env.MAIN_MOD }}.uplugin |  -r '.SemVersion')
+              CHANGELOGPATH=Mod/changelogs/$VERSION.md
+              if test -f "$CHANGELOGPATH"; then
+                CHANGELOG=$(cat $CHANGELOGPATH)
+                ficsit smr upload --api-key "${{ secrets.FICSIT_TOKEN }}" "${{ env.MOD_ID }}" "mod.zip" "$CHANGELOG"
+                echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+                exit 0
+              fi
+              exit 1
+
+          - name: Create Release
+            id: create_release
+            uses: actions/create-release@v1
+            env:
+              GITHUB_TOKEN: ${{ env.GH_TOKEN }} 
+            with:
+              repo: "Satisfactory-KMods/${{ env.MAIN_MOD }}"
+              tag_name: ${{ steps.ficsit.outputs.VERSION }}
+              release_name: "Release ${{ steps.ficsit.outputs.VERSION }}"
+              body_path: "Mod/changelogs/${{ steps.ficsit.outputs.VERSION }}.md"
+              draft: false
+              prerelease: false
