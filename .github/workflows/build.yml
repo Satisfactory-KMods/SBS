@@ -190,9 +190,10 @@ jobs:
         steps:
           - name: Install ficsit-cli and jq
             run: |
-              apt-get update && apt-get install -y jq
+              sudo apt-get update 
+              sudo apt-get install -y jq
               wget https://github.com/satisfactorymodding/ficsit-cli/releases/download/v0.5.1/ficsit_linux_amd64.deb
-              dpkg -i ficsit_linux_amd64.deb
+              sudo dpkg -i ficsit_linux_amd64.deb
 
           - name: Download Zip
             run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}-Windows.zip
