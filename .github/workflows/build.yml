@@ -17,7 +17,7 @@ env:
     PLUGIN_NAMES_PARAM: '"SBS" "KPrivateCodeLib" "KUI" "KBFL"'
     WORKING_DIR: "C:\\Users\\Administrator\\Documents\\workflow"
     WEB_ACCESS_PATH: "C:\\xampp\\htdocs"
-    MOD_ID: "9muBparb6nMvpr"
+    MOD_ID: "5B5PJercZDJUEL"
 
 jobs:
     build-mod:
