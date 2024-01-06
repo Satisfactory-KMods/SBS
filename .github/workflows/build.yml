@@ -224,7 +224,7 @@ jobs:
           - name: Release with ficsit-cli
             id: ficsit
             run: |
-              VERSION=$(cat Mod/${{ env.MAIN_MOD }}.uplugin |  -r '.SemVersion')
+              VERSION=$(cat Mod/${{ env.MAIN_MOD }}.uplugin | jq -r '.SemVersion')
               CHANGELOGPATH=Mod/changelogs/$VERSION.md
               if test -f "$CHANGELOGPATH"; then
                 CHANGELOG=$(cat $CHANGELOGPATH)
