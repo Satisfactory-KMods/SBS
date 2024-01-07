@@ -188,6 +188,9 @@ jobs:
         timeout-minutes: 60
         runs-on: ubuntu-latest
         steps:
+          - name: Checkout Repo
+            uses: actions/checkout@v3
+
           - name: Install ficsit-cli and jq
             run: |
               sudo apt-get update 
@@ -209,11 +212,6 @@ jobs:
               version: 8
               run_install: false
 
-          - name: Checkout Repo
-            uses: actions/checkout@v3
-            with:
-              path: 'Mod'
-
           - name: Checkout Patcher
             uses: actions/checkout@v3
             with:
@@ -224,8 +222,8 @@ jobs:
           - name: Release with ficsit-cli
             id: ficsit
             run: |
-              VERSION=$(cat Mod/${{ env.MAIN_MOD }}.uplugin | jq -r '.SemVersion')
-              CHANGELOGPATH=Mod/changelogs/$VERSION.md
+              VERSION=$(cat ${{ env.MAIN_MOD }}.uplugin | jq -r '.SemVersion')
+              CHANGELOGPATH=changelogs/$VERSION.md
               if test -f "$CHANGELOGPATH"; then
                 CHANGELOG=$(cat $CHANGELOGPATH)
                 ficsit smr upload --api-key "${{ secrets.FICSIT_TOKEN }}" "${{ env.MOD_ID }}" "mod.zip" "$CHANGELOG"
@@ -243,6 +241,76 @@ jobs:
               repo: "Satisfactory-KMods/${{ env.MAIN_MOD }}"
               tag_name: ${{ steps.ficsit.outputs.VERSION }}
               release_name: "Release ${{ steps.ficsit.outputs.VERSION }}"
-              body_path: "Mod/changelogs/${{ steps.ficsit.outputs.VERSION }}.md"
+              body_path: "changelogs/${{ steps.ficsit.outputs.VERSION }}.md"
+              draft: false
+              prerelease: false
+
+    release-smr-deps:
+        needs: release-smr
+        if: github.ref == 'refs/heads/main'
+        name: Release SMR Version
+        timeout-minutes: 60
+        runs-on: ubuntu-latest
+        strategy:
+          matrix:
+            mod: ["KBFL", "KPrivateCodeLib", "KUI"]
+        steps:
+          - name: Checkout Repo
+            uses: actions/checkout@v3
+            with:
+              repository: 'Satisfactory-KMods/${{ matrix.mod }}'
+              token: ${{ secrets.PAT }}
+
+          - name: Install ficsit-cli and jq
+            run: |
+              sudo apt-get update 
+              sudo apt-get install -y jq
+              wget https://github.com/satisfactorymodding/ficsit-cli/releases/download/v0.5.1/ficsit_linux_amd64.deb
+              sudo dpkg -i ficsit_linux_amd64.deb
+
+          - name: Download Zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ matrix.mod }}/plugins/${{ matrix.mod }}/${{ matrix.mod }}-Windows.zip
+          
+          - name: Install Node.js
+            uses: actions/setup-node@v3
+            with:
+              node-version: 18
+    
+          - uses: pnpm/action-setup@v2
+            name: Install pnpm
+            with:
+              version: 8
+              run_install: false
+
+          - name: Checkout Patcher
+            uses: actions/checkout@v3
+            with: 
+              repository: 'Satisfactory-KMods/WorkflowPatcher'
+              token: ${{ secrets.PAT }}
+              path: 'Patcher'
+
+          - name: Release with ficsit-cli
+            id: ficsit
+            run: |
+              VERSION=$(cat ${{ matrix.mod }}.uplugin | jq -r '.SemVersion')
+              CHANGELOGPATH=changelogs/$VERSION.md
+              if test -f "$CHANGELOGPATH"; then
+                CHANGELOG=$(cat $CHANGELOGPATH)
+                ficsit smr upload --api-key "${{ secrets.FICSIT_TOKEN }}" "${{ env.MOD_ID }}" "mod.zip" "$CHANGELOG"
+                echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+                exit 0
+              fi 
+              exit 1
+
+          - name: Create Release
+            id: create_release
+            uses: actions/create-release@v1
+            env:
+              GITHUB_TOKEN: ${{ env.GH_TOKEN }} 
+            with:
+              repo: "Satisfactory-KMods/${{ matrix.mod }}"
+              tag_name: ${{ steps.ficsit.outputs.VERSION }}
+              release_name: "Release ${{ steps.ficsit.outputs.VERSION }}"
+              body_path: "changelogs/${{ steps.ficsit.outputs.VERSION }}.md"
               draft: false
               prerelease: false
