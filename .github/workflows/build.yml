@@ -269,7 +269,7 @@ jobs:
               sudo dpkg -i ficsit_linux_amd64.deb
 
           - name: Download Zip
-            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ matrix.mod }}/plugins/${{ matrix.mod }}/${{ matrix.mod }}-Windows.zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ matrix.mod }}/${{ matrix.mod }}-Windows.zip
           
           - name: Install Node.js
             uses: actions/setup-node@v3
