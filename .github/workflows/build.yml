@@ -71,25 +71,25 @@ jobs:
               env:
                 PLUGIN: "KPrivateCodeLib"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -merge -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed -merge
 
             - name: Package SBS
               env:
                 PLUGIN: "SBS"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -merge -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed -merge
 
             - name: Package KUI
               env:
                 PLUGIN: "KUI"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -merge -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed -merge
   
             - name: Package KBFL
               env:
                 PLUGIN: "KBFL"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -merge -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed -merge
  
             # ----------------------------------------------------------------------
             #                    END OF BUILDING PLUGINS
