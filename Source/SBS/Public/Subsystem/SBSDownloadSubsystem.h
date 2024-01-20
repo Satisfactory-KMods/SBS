@@ -7,6 +7,7 @@
 #include "Interfaces/IHttpRequest.h"
 #include "Structures/ApiJsonStruct.h"
 #include "Subsystem/KPCLModSubsystem.h"
+#include "FGBlueprintSubsystem.h"
 #include "SBSDownloadSubsystem.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnDownloadComplete, FBlueprintJsonStructure, Blueprint, bool, Success );
