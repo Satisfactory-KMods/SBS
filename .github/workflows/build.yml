@@ -2,6 +2,9 @@ name: build and create release
 
 on:
     push:
+        branches:
+            - main
+            - patreon
 
 env:
     # tokens
@@ -64,33 +67,29 @@ jobs:
               run: |
                 MSBuild.exe $PWD\SML\FactoryGame.sln /p:Configuration="Development Editor" /p:Platform="Win64" /t:"Games\FactoryGame"
 
-            - name: Build c++ shipping
-              run: |
-                MSBuild.exe $PWD\SML\FactoryGame.sln /p:Configuration="Shipping" /p:Platform="Win64" /t:"Games\FactoryGame"
-
             - name: Package KPrivateCodeLib
               env:
                 PLUGIN: "KPrivateCodeLib"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
 
             - name: Package SBS
               env:
                 PLUGIN: "SBS"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
 
             - name: Package KUI
               env:
                 PLUGIN: "KUI"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
   
             - name: Package KBFL
               env:
                 PLUGIN: "KBFL"
               run: |
-                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
+                & ${{ env.UE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat -ScriptsForProject="$PWD\SML\FactoryGame.uproject" PackagePlugin -server -serverplatform=${{ secrets.SERVER_PLATFORMS }}  -Project="$PWD\SML\FactoryGame.uproject" -dlcname="${{ env.PLUGIN }}" -build -clientconfig=Shipping -serverconfig=Shipping -platform=Win64 -nocompileeditor -installed
  
             # ----------------------------------------------------------------------
             #                    END OF BUILDING PLUGINS
@@ -148,7 +147,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           - name: Download Zip
-            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}-Windows.zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}.zip
           
           - name: Install Node.js
             uses: actions/setup-node@v3
@@ -199,7 +198,7 @@ jobs:
               sudo dpkg -i ficsit_linux_amd64.deb
 
           - name: Download Zip
-            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}-Windows.zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ env.MAIN_MOD }}/${{ env.MAIN_MOD }}.zip
           
           - name: Install Node.js
             uses: actions/setup-node@v3
@@ -269,7 +268,7 @@ jobs:
               sudo dpkg -i ficsit_linux_amd64.deb
 
           - name: Download Zip
-            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ matrix.mod }}/${{ matrix.mod }}-Windows.zip
+            run: wget -q -O mod.zip ${{ secrets.CACHE_WEB_ADDR }}/${{ env.MAIN_MOD }}/plugins/${{ matrix.mod }}/${{ matrix.mod }}.zip
           
           - name: Install Node.js
             uses: actions/setup-node@v3
@@ -301,16 +300,3 @@ jobs:
                 exit 0
               fi 
               exit 1
-
-          #- name: Create Release
-          #  id: create_release
-          #  uses: actions/create-release@v1
-          #  env:
-          #    GITHUB_TOKEN: ${{ env.GH_TOKEN }} 
-          #  with:
-          #    repo: "Satisfactory-KMods/${{ matrix.mod }}"
-          #    tag_name: ${{ steps.ficsit.outputs.VERSION }}
-          #    release_name: "Release ${{ steps.ficsit.outputs.VERSION }}"
-          #    body_path: "changelogs/${{ steps.ficsit.outputs.VERSION }}.md"
-          #    draft: false
-          #    prerelease: false
