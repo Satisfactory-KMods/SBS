@@ -3,8 +3,9 @@
 
 #include "Net/UnrealNetwork.h"
 
-void USBSDefaultRCO::GetLifetimeReplicatedProps( TArray< FLifetimeProperty >& OutLifetimeProps ) const {
-	Super::GetLifetimeReplicatedProps( OutLifetimeProps );
+void USBSDefaultRCO::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	DOREPLIFETIME( USBSDefaultRCO, mDummy2 );
+	DOREPLIFETIME(USBSDefaultRCO, mDummy2);
 }

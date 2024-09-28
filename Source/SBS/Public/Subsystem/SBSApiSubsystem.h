@@ -11,155 +11,167 @@
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "SBSApiSubsystem.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams( FOnBlueprintQueryDone, const TArray<FBlueprintJsonStructure>&, Blueprints, int32, Max, bool, Success );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnBlueprintQueryDone, const TArray<FBlueprintJsonStructure>&,
+                                               Blueprints, int32, Max, bool, Success);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams( FOnBlueprintPackQueryDone, const TArray<FBlueprintPackJsonStructure>&, BlueprintPacks, int32, Max, bool, Success );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnBlueprintPackQueryDone, const TArray<FBlueprintPackJsonStructure>&,
+                                               BlueprintPacks, int32, Max, bool, Success);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnDynamicQueryDone, FDynamicApiPostStruct, PostResult, bool, Success );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDynamicQueryDone, FDynamicApiPostStruct, PostResult, bool, Success);
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams( FOnAuthUpdated, FSBSUserData, UserData, bool, Success );
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnAuthUpdated, FSBSUserData, UserData, bool, Success);
 
 /**
  * 
  */
-UCLASS( )
-class SBS_API USBSApiSubsystem : public UGameInstanceSubsystem {
-	GENERATED_BODY( )
+UCLASS()
+class SBS_API USBSApiSubsystem : public UGameInstanceSubsystem
+{
+	GENERATED_BODY()
 
-	protected:
-		virtual void Initialize( FSubsystemCollectionBase& Collection ) override;
+protected:
+	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-		virtual void Deinitialize( ) override;
+	virtual void Deinitialize() override;
 
-		bool Tick( float DeltaSeconds );
+	bool Tick(float DeltaSeconds);
 
-		FDelegateHandle TickDelegateHandle;
+	FTSTicker::FDelegateHandle TickDelegateHandle;
 
-	public:
-		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-		void QueryApi( FFilterPostStruct Post );
+public:
+	UFUNCTION(BlueprintCallable, Category = "KMods|Json")
+	void QueryApi(FFilterPostStruct Post);
 
-		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-		void QueryPackApi( FPackFilterPostStruct Post );
+	UFUNCTION(BlueprintCallable, Category = "KMods|Json")
+	void QueryPackApi(FPackFilterPostStruct Post);
 
-		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-		void QueryApiDynamic( FDynamicApiPostStruct Post );
+	UFUNCTION(BlueprintCallable, Category = "KMods|Json")
+	void QueryApiDynamic(FDynamicApiPostStruct Post);
 
-		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-		void QueryRating( FRatingPostStruct Post );
+	UFUNCTION(BlueprintCallable, Category = "KMods|Json")
+	void QueryRating(FRatingPostStruct Post);
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		bool IsQuery( ) const;
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	bool IsQuery() const;
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		bool IsPackQuery( ) const;
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	bool IsPackQuery() const;
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		bool IsBpQuery( ) const;
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	bool IsBpQuery() const;
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		bool IsAuthQuery( ) const;
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	bool IsAuthQuery() const;
 
-		UFUNCTION( BlueprintCallable, Category = "KMods|Json" )
-		void QueryForAuth( );
+	UFUNCTION(BlueprintCallable, Category = "KMods|Json")
+	void QueryForAuth();
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE TArray< FBlueprintJsonStructure > GetBlueprints( ) const {
-			return mCurrentBlueprints;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE TArray<FBlueprintJsonStructure> GetBlueprints() const
+	{
+		return mCurrentBlueprints;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE TArray< FBlueprintPackJsonStructure > GetBlueprintPacks( ) const {
-			return mCurrentBlueprintPacks;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE TArray<FBlueprintPackJsonStructure> GetBlueprintPacks() const
+	{
+		return mCurrentBlueprintPacks;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE int32 GetTotalBlueprints( ) const {
-			return mTotalBlueprints;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE int32 GetTotalBlueprints() const
+	{
+		return mTotalBlueprints;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE int32 GetTotalBlueprintPacks( ) const {
-			return mTotalBlueprintPacks;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE int32 GetTotalBlueprintPacks() const
+	{
+		return mTotalBlueprintPacks;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE FSBSUserData GetUserData( ) const {
-			return mUserData;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE FSBSUserData GetUserData() const
+	{
+		return mUserData;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE bool IsLoggedIn( ) const {
-			return mUserData.Role >= 0;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE bool IsLoggedIn() const
+	{
+		return mUserData.Role >= 0;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE bool GetIsInQuery( ) const {
-			return bIsInQuery;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE bool GetIsInQuery() const
+	{
+		return bIsInQuery;
+	}
 
-		UFUNCTION( BlueprintPure, Category = "KMods|Json" )
-		FORCEINLINE TArray< FBlueprintJsonTagStructure > GetTags( ) const {
-			return mTags;
-		}
+	UFUNCTION(BlueprintPure, Category = "KMods|Json")
+	FORCEINLINE TArray<FBlueprintJsonTagStructure> GetTags() const
+	{
+		return mTags;
+	}
 
-		// NATIVE GETTER
-		static USBSApiSubsystem* Get( const UObject* WorldContext );
+	// NATIVE GETTER
+	static USBSApiSubsystem* Get(const UObject* WorldContext);
 
-		UPROPERTY( BlueprintAssignable )
-		FOnBlueprintQueryDone mOnQueryDone;
+	UPROPERTY(BlueprintAssignable)
+	FOnBlueprintQueryDone mOnQueryDone;
 
-		UPROPERTY( BlueprintAssignable )
-		FOnBlueprintPackQueryDone mOnPackQueryDone;
+	UPROPERTY(BlueprintAssignable)
+	FOnBlueprintPackQueryDone mOnPackQueryDone;
 
-		UPROPERTY( BlueprintAssignable )
-		FOnDynamicQueryDone mOnDynamicQueryDone;
+	UPROPERTY(BlueprintAssignable)
+	FOnDynamicQueryDone mOnDynamicQueryDone;
 
-		UPROPERTY( BlueprintAssignable )
-		FOnAuthUpdated mOnAuthUpdated;
+	UPROPERTY(BlueprintAssignable)
+	FOnAuthUpdated mOnAuthUpdated;
 
-		UPROPERTY( BlueprintReadOnly, Category = "BlueprintJsonStructure" )
-		TArray< FBlueprintJsonTagStructure > mTags;
+	UPROPERTY(BlueprintReadOnly, Category = "BlueprintJsonStructure")
+	TArray<FBlueprintJsonTagStructure> mTags;
 
-	protected:
-		void OnBlueprintQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+protected:
+	void OnBlueprintQueryDone(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
 
-		void OnBlueprintPackQueryDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+	void OnBlueprintPackQueryDone(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
 
-		void OnQueryDynamicDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+	void OnQueryDynamicDone(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
 
-		void OnQueryAuthDone( FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess );
+	void OnQueryAuthDone(FHttpRequestPtr Request, FHttpResponsePtr Response, bool bSuccess);
 
-		void OnAccountKeyChanged( );
+	UFUNCTION()
+	void OnAccountKeyChanged();
 
-	private:
-		UPROPERTY( )
-		TArray< FBlueprintJsonStructure > mCurrentBlueprints;
+private:
+	UPROPERTY()
+	TArray<FBlueprintJsonStructure> mCurrentBlueprints;
 
-		UPROPERTY( )
-		TArray< FBlueprintPackJsonStructure > mCurrentBlueprintPacks;
+	UPROPERTY()
+	TArray<FBlueprintPackJsonStructure> mCurrentBlueprintPacks;
 
-		UPROPERTY( )
-		int32 mTotalBlueprints;
+	UPROPERTY()
+	int32 mTotalBlueprints;
 
-		UPROPERTY( )
-		int32 mTotalBlueprintPacks;
+	UPROPERTY()
+	int32 mTotalBlueprintPacks;
 
-		UPROPERTY( )
-		FSBSUserData mUserData;
+	UPROPERTY()
+	FSBSUserData mUserData;
 
-		UPROPERTY( )
-		FDynamicApiPostStruct mDynamicQuery;
+	UPROPERTY()
+	FDynamicApiPostStruct mDynamicQuery;
 
-		UPROPERTY( )
-		TArray< FDynamicApiPostStruct > mDynamicQueue;
+	UPROPERTY()
+	TArray<FDynamicApiPostStruct> mDynamicQueue;
 
-		UPROPERTY( )
-		bool bIsInQuery = false;
+	UPROPERTY()
+	bool bIsInQuery = false;
 
-		UPROPERTY( )
-		bool bIsInPackQuery = false;
+	UPROPERTY()
+	bool bIsInPackQuery = false;
 
-		UPROPERTY( )
-		bool bIsInAuthQuery = false;
+	UPROPERTY()
+	bool bIsInAuthQuery = false;
 };

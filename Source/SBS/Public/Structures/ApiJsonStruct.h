@@ -13,7 +13,6 @@ struct SBS_API FApiJsonStruct
 	{
 	}
 
-public:
 	TSharedPtr<FJsonObject> mJsonObject;
 
 	void setJsonObject(TSharedPtr<FJsonObject> object)
@@ -32,7 +31,6 @@ struct SBS_API FBlueprintJsonTagStructure : public FApiJsonStruct
 	GENERATED_BODY()
 	;
 
-public:
 	UPROPERTY(BlueprintReadOnly, Category = "BlueprintJsonStructure")
 	FString ID;
 
@@ -48,7 +46,6 @@ struct SBS_API FBlueprintJsonColorStructure : public FApiJsonStruct
 	GENERATED_BODY()
 	;
 
-public:
 	UPROPERTY(BlueprintReadOnly, Category = "BlueprintJsonStructure")
 	int32 IconID;
 
@@ -64,7 +61,6 @@ struct SBS_API FBlueprintJsonStructure : public FApiJsonStruct
 	GENERATED_BODY()
 	;
 
-public:
 	bool operator==(const FBlueprintJsonStructure& Other) const
 	{
 		return ID == Other.ID;
@@ -130,7 +126,6 @@ struct SBS_API FBlueprintInPackJsonStructure : public FApiJsonStruct
 	GENERATED_BODY()
 	;
 
-public:
 	bool operator==(const FBlueprintJsonStructure& Other) const
 	{
 		return ID == Other.ID;
@@ -163,7 +158,6 @@ struct SBS_API FBlueprintPackJsonStructure : public FApiJsonStruct
 	GENERATED_BODY()
 	;
 
-public:
 	bool operator==(const FBlueprintJsonStructure& Other) const
 	{
 		return ID == Other.ID;

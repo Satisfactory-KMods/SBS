@@ -18,7 +18,6 @@ struct SBS_API FSBSStatics
 	GENERATED_BODY()
 	;
 
-public:
 	// deprecated but needed until the frontend and api is updated.
 	// @note: this api key is not secret or something like this. since the download and endpoint is public.
 	inline static FString API_KEY =
@@ -29,7 +28,7 @@ public:
 
 	// deprecated 
 	inline static FString API_URL_DEV = "https://dev-sbs.kmods.space/api/v1/";
-	
+
 	inline static FString API_AUTH = "mod/authcheck";
 	inline static FString API_BLUEPRINT = "mod/getblueprints";
 	inline static FString API_BLUEPRINTPACKS = "mod/getblueprintpacks";

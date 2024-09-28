@@ -4,9 +4,6 @@
 #include "Subsystem/SBSDownloadSubsystem.h"
 
 #include "FGBlueprintSubsystem.h"
-#include "FGNetworkLibrary.h"
-#include "FGOnlineSessionSettings.h"
-#include "FindSessionsCallbackProxy.h"
 #include "HttpModule.h"
 #include "Interfaces/IHttpResponse.h"
 #include "SBS/Public/Logging.h"

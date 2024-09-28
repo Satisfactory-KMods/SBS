@@ -18,7 +18,6 @@ struct SBS_API FApiPostStruct
 	{
 	}
 
-public:
 	// create Header
 	static void MakeHeader(TMap<FString, FString>& Headers, UObject* WorldContext);
 
@@ -57,7 +56,6 @@ struct SBS_API FDynamicApiPostStruct : public FApiPostStruct
 		return Indetifier != Other.Indetifier;
 	}
 
-public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Filter Post Struct")
 	FText NotifyText = FText::FromString("");
 
@@ -93,7 +91,6 @@ struct SBS_API FFilterPostStruct : public FApiPostStruct
 	{
 	}
 
-public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Filter Post Struct")
 	int32 Limit = 20;
 
@@ -144,7 +141,6 @@ struct SBS_API FRatingPostStruct : public FDynamicApiPostStruct
 	GENERATED_BODY()
 	;
 
-public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Rating Post Struct")
 	FString BlueprintID = "";
 
@@ -191,7 +187,6 @@ struct SBS_API FSBSUserData : public FDynamicApiPostStruct
 {
 	GENERATED_BODY()
 
-public:
 	UPROPERTY(BlueprintReadOnly)
 	FString ID = "";
 

@@ -12,7 +12,8 @@ void USBSApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	Collection.InitializeDependency(UKBFLAssetDataSubsystem::StaticClass());
 	Super::Initialize(Collection);
 
-	FTicker::GetCoreTicker().AddTicker(FTickerDelegate::CreateUObject(this, &USBSApiSubsystem::Tick), 1);
+	TickDelegateHandle = FTSTicker::GetCoreTicker().AddTicker(
+		FTickerDelegate::CreateUObject(this, &USBSApiSubsystem::Tick), 1);
 
 	UConfigProperty* Property = UKBFL_ConfigTools::GetConfigPropertyByKey(
 		FSBSStatics::GETMODCONFIG(), "accountkey", GetWorld());
@@ -22,7 +23,7 @@ void USBSApiSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 
 void USBSApiSubsystem::Deinitialize()
 {
-	FTicker::GetCoreTicker().RemoveTicker(TickDelegateHandle);
+	FTSTicker::GetCoreTicker().RemoveTicker(TickDelegateHandle);
 	Super::Deinitialize();
 }
 
