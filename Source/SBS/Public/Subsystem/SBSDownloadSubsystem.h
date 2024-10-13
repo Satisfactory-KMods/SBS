@@ -13,7 +13,7 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDownloadComplete, FBlueprintJsonStructure, Blueprint, bool, Success);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnDownloadProgress, FBlueprintJsonStructure, Blueprint, float, Progress,
-                                               FString, FileName);
+	FString, FileName);
 
 UCLASS()
 class SBS_API ASBSDownloadSubsystem : public AKPCLModSubsystem

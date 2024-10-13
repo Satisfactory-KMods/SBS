@@ -15,11 +15,11 @@
 
 void FSBSModule::StartupModule()
 {
-#if !WITH_EDITOR
+	#if !WITH_EDITOR
 	// Hooking to register RCOs
 	//AFGGameMode* LocalGameMode = GetMutableDefault<AFGGameMode>();
 	//SUBSCRIBE_METHOD_VIRTUAL( AFGGameMode::PostLogin, LocalGameMode, &GameModePostLogin );
-#endif
+	#endif
 }
 
 IMPLEMENT_GAME_MODULE(FSBSModule, SBS);

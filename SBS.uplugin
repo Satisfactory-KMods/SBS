@@ -25,12 +25,12 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.7.0",
+			"SemVersion": "^3.8.0",
 			"Enabled": true
 		},
 		{
 			"Name": "KPrivateCodeLib",
-			"SemVersion": "^2.2.2",
+			"SemVersion": "^3.0.0",
 			"Enabled": true
 		}
 	],
@@ -39,5 +39,6 @@
 			"Name": "SBS",
 			"LoadingPolicy": "Always"
 		}
-	]
+	],
+	"GameVersion": ">=365306"
 }

@@ -20,7 +20,7 @@ void FApiPostStruct::MakeHeader(TMap<FString, FString>& Headers, UObject* WorldC
 
 FString FApiPostStruct::ToString()
 {
-	FString out = "{}";
+	FString                 out = "{}";
 	TSharedPtr<FJsonObject> JsonObject = MakeShareable(new FJsonObject);
 
 	ToJson(JsonObject);
@@ -31,11 +31,9 @@ FString FApiPostStruct::ToString()
 	return out;
 }
 
-void FDynamicApiPostStruct::OnRequestDone(FHttpRequestPtr Request, FHttpResponsePtr Response,
-                                          USBSApiSubsystem* Subsystem, TSharedPtr<FJsonObject> JsonObject,
-                                          UObject* WorldContext)
-{
-}
+void FDynamicApiPostStruct::OnRequestDone(FHttpRequestPtr Request, FHttpResponsePtr          Response,
+	USBSApiSubsystem*                                     Subsystem, TSharedPtr<FJsonObject> JsonObject,
+	UObject*                                              WorldContext) {}
 
 void FFilterPostStruct::ToJson(TSharedPtr<FJsonObject>& JsonObject)
 {
@@ -93,7 +91,7 @@ void FRatingPostStruct::ToJson(TSharedPtr<FJsonObject>& JsonObject)
 }
 
 void FGetTagsStruct::OnRequestDone(FHttpRequestPtr Request, FHttpResponsePtr Response, USBSApiSubsystem* Subsystem,
-                                   TSharedPtr<FJsonObject> JsonObject, UObject* WorldContext)
+	TSharedPtr<FJsonObject>                        JsonObject, UObject*      WorldContext)
 {
 	Subsystem->mTags.Empty();
 	const TArray<TSharedPtr<FJsonValue>>* DataArray;

@@ -12,10 +12,10 @@
 #include "SBSApiSubsystem.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnBlueprintQueryDone, const TArray<FBlueprintJsonStructure>&,
-                                               Blueprints, int32, Max, bool, Success);
+	Blueprints, int32, Max, bool, Success);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnBlueprintPackQueryDone, const TArray<FBlueprintPackJsonStructure>&,
-                                               BlueprintPacks, int32, Max, bool, Success);
+	BlueprintPacks, int32, Max, bool, Success);
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnDynamicQueryDone, FDynamicApiPostStruct, PostResult, bool, Success);
 

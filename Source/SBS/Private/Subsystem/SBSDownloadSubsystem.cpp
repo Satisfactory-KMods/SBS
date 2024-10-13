@@ -34,8 +34,8 @@ void ASBSDownloadSubsystem::SubsytemTick(float dt)
 
 			mCurrentDownload = mDownloadQueueChecker.Pop();
 			UE_LOG(LogSBS, Log, TEXT("Download now '%s' with SBS Id: '%s'"), *mCurrentDownload.OriginalName,
-			       *mCurrentDownload.ID);
-			FDownloadSbpStruct SbpStruct;
+				*mCurrentDownload.ID);
+			FDownloadSbpStruct    SbpStruct;
 			FDownloadSbpcfgStruct SbpcfgStruct;
 			SbpStruct.ID = mCurrentDownload.ID;
 			SbpcfgStruct.ID = mCurrentDownload.ID;
@@ -118,7 +118,7 @@ void ASBSDownloadSubsystem::OnDownloadCompleteFile1(FHttpRequestPtr Request, FHt
 		CheckFilePath(Path);
 		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
-		bool Failed = false;
+		bool         Failed = false;
 		IFileHandle* FileHandle = PlatformFile.OpenWrite(*Path);
 		if (!FileHandle)
 		{
@@ -153,7 +153,7 @@ void ASBSDownloadSubsystem::OnDownloadCompleteFile2(FHttpRequestPtr Request, FHt
 		CheckFilePath(Path);
 		IPlatformFile& PlatformFile = FPlatformFileManager::Get().GetPlatformFile();
 
-		bool Failed = false;
+		bool         Failed = false;
 		IFileHandle* FileHandle = PlatformFile.OpenWrite(*Path);
 		if (!FileHandle)
 		{
@@ -177,9 +177,9 @@ void ASBSDownloadSubsystem::OnDownloadCompleteFile2(FHttpRequestPtr Request, FHt
 }
 
 void ASBSDownloadSubsystem::OnDownloadProgressFile1(FHttpRequestPtr HttpRequest, int32 BytesSend,
-                                                    int32 InBytesReceived) const
+	int32                                                           InBytesReceived) const
 {
-	int32 ReceivedSize = InBytesReceived;
+	int32            ReceivedSize = InBytesReceived;
 	FHttpResponsePtr HttpResponse = HttpRequest->GetResponse();
 
 	if (HttpResponse.IsValid())
@@ -194,7 +194,7 @@ void ASBSDownloadSubsystem::OnDownloadProgressFile1(FHttpRequestPtr HttpRequest,
 }
 
 void ASBSDownloadSubsystem::OnDownloadProgressFile2(FHttpRequestPtr HttpRequest, int32 BytesSend,
-                                                    int32 InBytesReceived) const
+	int32                                                           InBytesReceived) const
 {
 	int32 ReceivedSize = InBytesReceived;
 
@@ -220,11 +220,10 @@ void ASBSDownloadSubsystem::CheckFilePath(FString filePath)
 		if (!PlatformFile.CreateDirectoryTree(*GetCurrentBlueprintPath()))
 		{
 			UE_LOG(LogSBS, Error, TEXT("Unable to create a directory '%s' to save the downloaded file"),
-			       *GetCurrentBlueprintPath());
+				*GetCurrentBlueprintPath());
 			return;
 		}
 	}
-
 
 	if (FPaths::FileExists(*filePath))
 	{
@@ -304,7 +303,7 @@ bool ASBSDownloadSubsystem::IsBlueprintInstalled(FBlueprintJsonStructure Bluepri
 }
 
 bool ASBSDownloadSubsystem::OnBlueprintCreated_Implementation(UFGBlueprintDescriptor* BlueprintDescriptor,
-                                                              FBlueprintJsonStructure Blueprint)
+	FBlueprintJsonStructure                                                           Blueprint)
 {
 	return false;
 }

@@ -9,9 +9,7 @@ struct SBS_API FApiJsonStruct
 	GENERATED_BODY()
 	;
 
-	virtual ~FApiJsonStruct()
-	{
-	}
+	virtual ~FApiJsonStruct() {}
 
 	TSharedPtr<FJsonObject> mJsonObject;
 
@@ -20,9 +18,7 @@ struct SBS_API FApiJsonStruct
 		mJsonObject = object;
 	}
 
-	virtual void parse(UObject* WorldContext)
-	{
-	}
+	virtual void parse(UObject* WorldContext) {}
 };
 
 USTRUCT(BlueprintType)

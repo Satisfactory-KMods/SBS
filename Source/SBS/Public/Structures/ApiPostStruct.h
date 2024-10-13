@@ -14,9 +14,7 @@ struct SBS_API FApiPostStruct
 	GENERATED_BODY()
 	;
 
-	virtual ~FApiPostStruct()
-	{
-	}
+	virtual ~FApiPostStruct() {}
 
 	// create Header
 	static void MakeHeader(TMap<FString, FString>& Headers, UObject* WorldContext);
@@ -31,9 +29,7 @@ struct SBS_API FApiPostStruct
 
 protected:
 	// write post data to JSON Object
-	virtual void ToJson(TSharedPtr<FJsonObject>& JsonObject)
-	{
-	}
+	virtual void ToJson(TSharedPtr<FJsonObject>& JsonObject) {}
 };
 
 USTRUCT(BlueprintType)
@@ -42,9 +38,7 @@ struct SBS_API FDynamicApiPostStruct : public FApiPostStruct
 	GENERATED_BODY()
 	;
 
-	virtual ~FDynamicApiPostStruct() override
-	{
-	}
+	virtual ~FDynamicApiPostStruct() override {}
 
 	bool operator==(const FDynamicApiPostStruct& Other) const
 	{
@@ -66,7 +60,7 @@ struct SBS_API FDynamicApiPostStruct : public FApiPostStruct
 	FString FailedText = FString();
 
 	virtual void OnRequestDone(FHttpRequestPtr Request, FHttpResponsePtr Response, class USBSApiSubsystem* Subsystem,
-	                           TSharedPtr<FJsonObject> JsonObject, UObject* WorldContext);
+		TSharedPtr<FJsonObject>                JsonObject, UObject*      WorldContext);
 };
 
 USTRUCT(BlueprintType)
@@ -87,9 +81,7 @@ struct SBS_API FFilterPostStruct : public FApiPostStruct
 	GENERATED_BODY()
 	;
 
-	virtual ~FFilterPostStruct() override
-	{
-	}
+	virtual ~FFilterPostStruct() override {}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Filter Post Struct")
 	int32 Limit = 20;
@@ -214,5 +206,5 @@ struct SBS_API FGetTagsStruct : public FDynamicApiPostStruct
 	};
 
 	virtual void OnRequestDone(FHttpRequestPtr Request, FHttpResponsePtr Response, class USBSApiSubsystem* Subsystem,
-	                           TSharedPtr<FJsonObject> JsonObject, UObject* WorldContext) override;
+		TSharedPtr<FJsonObject>                JsonObject, UObject*      WorldContext) override;
 };
