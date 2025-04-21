@@ -25,7 +25,7 @@
 	"Plugins": [
 		{
 			"Name": "SML",
-			"SemVersion": "^3.8.0",
+			"SemVersion": "^3.10.0",
 			"Enabled": true
 		},
 		{
@@ -40,5 +40,5 @@
 			"LoadingPolicy": "Always"
 		}
 	],
-	"GameVersion": ">=365306"
+	"GameVersion": ">=382498"
 }
